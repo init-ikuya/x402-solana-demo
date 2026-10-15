@@ -1,0 +1,29 @@
+# Local secrets
+.env
+.env.*
+!.env.example
+!.env.*.example
+*.pem
+*.key
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Local logs
+*.log
+
+# Node build and dependencies
+**/node_modules/
+
+# Rust and Anchor build artifacts and local keys
+/target/
+/.anchor/
+/test-ledger/
+/.surfpool/
+**/*.rs.bk
+*-keypair.json
+
+# Reference PDFs and generated documents
+/docs/**/*.pdf
+/docs/topics/**/slides.html

@@ -1,0 +1,26 @@
+{
+  "name": "@anchoring-payment-channels/client",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "agent": "tsx src/agent.ts",
+    "agent:env": "node --env-file=.env --import tsx src/agent.ts",
+    "pay": "tsx src/pay.ts",
+    "pay:env": "node --env-file=.env --import tsx src/pay.ts",
+    "refund": "tsx src/refund.ts",
+    "refund:env": "node --env-file=.env --import tsx src/refund.ts",
+    "check": "tsc --noEmit",
+    "test": "node --import tsx --test test/*.test.ts"
+  },
+  "dependencies": {
+    "@solana/kit": "8.4.0",
+    "@x402/core": "2.28.0",
+    "@x402/svm": "2.28.0"
+  },
+  "devDependencies": {
+    "@types/node": "24.10.0",
+    "tsx": "4.23.15",
+    "typescript": "5.9.3"
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "name": "anchoring-payment-channels",
+  "private": true,
+  "workspaces": ["examples/gateway", "examples/client"],
+  "scripts": {
+    "payment:gateway": "npm run dev --workspace @anchoring-payment-channels/gateway",
+    "payment:facilitator": "npm run facilitator --workspace @anchoring-payment-channels/gateway",
+    "payment:pay": "npm run pay --workspace @anchoring-payment-channels/client",
+    "payment:refund": "npm run refund --workspace @anchoring-payment-channels/client",
+    "payment:agent": "npm run agent --workspace @anchoring-payment-channels/client",
+    "payment:check": "npm run check --workspaces",
+    "payment:test": "npm run test --workspaces",
+    "exact:gateway": "npm run payment:gateway",
+    "exact:facilitator": "npm run payment:facilitator",
+    "exact:pay": "npm run payment:pay",
+    "exact:check": "npm run payment:check",
+    "exact:test": "npm run payment:test"
+  }
+}

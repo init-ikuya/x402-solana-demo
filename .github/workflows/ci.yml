@@ -1,0 +1,169 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  # Serialize nightly publishers, including manual runs from other branches.
+  group: ci-${{ (github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/main') && 'nightly' || github.ref }}
+  cancel-in-progress: false
+
+defaults:
+  run:
+    shell: bash
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  payments:
+    name: x402 payment examples
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npm run payment:check
+      - run: npm run payment:test
+
+  format:
+    name: Rust formatting
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - name: Install the repository Rust toolchain
+        run: rustup show
+      - run: cargo fmt --all -- --check
+
+  test:
+    name: Anchor build and LiteSVM tests
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    env:
+      ANCHOR_VERSION: 1.2.0
+      SOLANA_VERSION: 3.1.10
+      PLATFORM_TOOLS_VERSION: v1.57
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Install native build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes --no-install-recommends build-essential pkg-config libssl-dev libudev-dev clang
+
+      - name: Install the repository Rust toolchain
+        run: rustup show
+
+      - name: Cache Rust dependencies and SBF platform tools
+        uses: actions/cache@v5
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            ~/.cache/solana
+          key: ${{ runner.os }}-${{ runner.arch }}-rust-sbf-${{ env.PLATFORM_TOOLS_VERSION }}-${{ hashFiles('rust-toolchain.toml', 'Cargo.lock') }}
+
+      # Pinned upstream release assets; update checksums when changing versions.
+      - name: Install Anchor CLI
+        run: |
+          mkdir -p "$RUNNER_TEMP/anchor-bin"
+          curl --fail --location --retry 3 \
+            "https://github.com/otter-sec/anchor/releases/download/v${ANCHOR_VERSION}/anchor-${ANCHOR_VERSION}-x86_64-unknown-linux-gnu" \
+            --output "$RUNNER_TEMP/anchor-bin/anchor"
+          echo "0c9c41a3292c281cc6eadb78d6e1c8224d8324a34b0736a89d640fd314db05b7  $RUNNER_TEMP/anchor-bin/anchor" | sha256sum --check
+          chmod +x "$RUNNER_TEMP/anchor-bin/anchor"
+          echo "$RUNNER_TEMP/anchor-bin" >> "$GITHUB_PATH"
+
+      - name: Install Solana CLI
+        run: |
+          curl --fail --location --retry 3 \
+            "https://github.com/anza-xyz/agave/releases/download/v${SOLANA_VERSION}/solana-release-x86_64-unknown-linux-gnu.tar.bz2" \
+            --output "$RUNNER_TEMP/solana-release.tar.bz2"
+          echo "a7205ff29bcf0f7199740225ecae2b85a28ea9668892d5ec21bd9749882984a1  $RUNNER_TEMP/solana-release.tar.bz2" | sha256sum --check
+          tar -xjf "$RUNNER_TEMP/solana-release.tar.bz2" -C "$RUNNER_TEMP"
+          echo "$RUNNER_TEMP/solana-release/bin" >> "$GITHUB_PATH"
+
+      - name: Report tool versions
+        run: |
+          rustc --version
+          anchor --version
+          solana --version
+
+      - name: Build SBF program and IDL
+        # v0 supports LiteSVM 0.10. No deployment keypair is required in CI.
+        run: anchor build --arch v0 --tools-version "$PLATFORM_TOOLS_VERSION" --ignore-keys
+
+      - name: Run in-process LiteSVM tests
+        # Explicit flags prevent deployment or starting a validator.
+        run: anchor test --skip-build --skip-deploy --skip-local-validator
+
+      - name: Ensure dependency resolution did not change the lockfile
+        run: git diff --exit-code -- Cargo.lock
+
+      - name: Set up Node.js for documentation PDFs
+        uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+
+      - name: Render architecture and presentation PDFs
+        run: |
+          npx --yes @marp-team/marp-cli@4.5.0 --html --pdf \
+            docs/architecture-submission.md -o docs/architecture-submission.pdf
+          test -s docs/architecture-submission.pdf
+          npx --yes @marp-team/marp-cli@4.5.0 --html --pdf \
+            docs/topics/closing-settlement/slides.md -o docs/topics/closing-settlement/slides.pdf
+          test -s docs/topics/closing-settlement/slides.pdf
+          npx --yes @marp-team/marp-cli@4.5.0 --html --pdf \
+            docs/topics/auth-capture/slides.md -o docs/topics/auth-capture/slides.pdf
+          test -s docs/topics/auth-capture/slides.pdf
+
+      - name: Package public build outputs
+        run: python3 .github/scripts/package-nightly.py "$RUNNER_TEMP/nightly"
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: program-build
+          path: ${{ runner.temp }}/nightly/
+          if-no-files-found: error
+          retention-days: 7
+
+  nightly:
+    name: Publish nightly release
+    needs: [payments, format, test]
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref == 'refs/heads/main')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@v8
+        with:
+          name: program-build
+          path: ${{ runner.temp }}/nightly
+      - name: Publish nightly
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: bash .github/scripts/publish-nightly.sh

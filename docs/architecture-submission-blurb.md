@@ -1,0 +1,3 @@
+# Architecture submission blurb
+
+I plan to build an x402 payment demo on Solana in which an AI agent pays for API calls through a TypeScript gateway, covering exact, batch-settlement, upto, and auth-capture. My main Anchor experiment will test Issue #90: allowing a merchant to record a client-authorized batch payment during the channel's Closing grace period even if the facilitator is offline, then distribute funds after sealing. I will also design and prototype a Solana auth-capture binding for held funds, partial capture, release, merchant-funded refunds, and client reclaim after the capture deadline.
