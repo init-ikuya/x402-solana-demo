@@ -2,6 +2,7 @@ import { runAgent } from "./agent-core.js";
 import { AgentPaymentSession } from "./agent-payment-session.js";
 import { DEVNET_USDC } from "./constants.js";
 import { paidReportEvidence, reviewDemoAnswer } from "./demo-answer.js";
+import { createDemoHttpTrace } from "./demo-http-trace.js";
 import { loadKeypair } from "./keypair.js";
 import { OllamaChatModel } from "./ollama-model.js";
 import { createPaymentTools, type PaymentScheme } from "./payment-tools.js";
@@ -39,6 +40,7 @@ try {
     prompt: process.env.AGENT_PROMPT ?? "Use each available paid API tool once. In your answer, include each report ID and exact headline from the API, then summarize the fictional findings and what each call cost.",
     tools: createPaymentTools({
       session, signer, limits: { payTo, asset: DEVNET_USDC, maxAmount }, routes,
+      fetchImpl: process.env.PAYMENT_DEMO_TRACE === "1" ? createDemoHttpTrace() : fetch,
       rpcUrl: process.env.PAYMENT_RPC_URL,
     }),
     maxTurns,

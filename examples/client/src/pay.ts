@@ -1,5 +1,6 @@
 import { AgentPaymentSession } from "./agent-payment-session.js";
 import { DEVNET_USDC } from "./exact-client.js";
+import { createDemoHttpTrace } from "./demo-http-trace.js";
 import { loadKeypair } from "./keypair.js";
 
 const scheme = process.env.PAYMENT_SCHEME ?? "exact";
@@ -30,12 +31,13 @@ const session = new AgentPaymentSession({
   maxTotalAmount: BigInt(totalAmount),
   maxPayments: Number(maxPayments),
 });
+const fetchImpl = process.env.PAYMENT_DEMO_TRACE === "1" ? createDemoHttpTrace() : fetch;
 for (let request = 1; request <= Number(requestCount); request++) {
   try {
     const limits = { payTo, asset: DEVNET_USDC, maxAmount: BigInt(maxAmount) };
     const payment = scheme === "upto"
-      ? session.payUpto(url, limits, signer)
-      : session.payExact(url, limits, signer);
+      ? session.payUpto(url, limits, signer, fetchImpl)
+      : session.payExact(url, limits, signer, fetchImpl);
     const { response, settlement } = await payment;
     console.log(await response.text());
     console.log(`Payment ${request}: ${settlement.transaction}; spent ${session.spent}/${session.budget.maxTotalAmount} atomic USDC units`);

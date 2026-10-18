@@ -16,6 +16,18 @@ npm run pay:env --workspace @anchoring-payment-channels/client
 
 The CLI defaults to one paid request. Set `AGENT_REQUEST_COUNT`, `AGENT_MAX_PAYMENTS`, and `AGENT_MAX_TOTAL_AMOUNT` in the client `.env` to make several bounded requests. A payment with an unknown outcome blocks further requests in that process; inspect transaction history before starting a new run.
 
+For a recording or live walkthrough, set `PAYMENT_DEMO_TRACE=1` in the client `.env` and run either the CLI above or the [LLM agent](AGENT.md). The trace shows the initial GET, decoded `PAYMENT-REQUIRED` terms, the signed retry with `PAYMENT-SIGNATURE` redacted, the decoded `PAYMENT-RESPONSE` settlement, and a short JSON body preview. The CLI also prints the complete paid resource body. The trace does not print signed transaction bytes or private keys. `exact` charges 1000 atomic USDC units; this repository's `upto` route quotes a 1000-unit ceiling and settles the illustrative 300-unit charge. Turn the option off for normal runs. A local mock RPC trace is evidence of the HTTP flow, not a live Devnet transfer.
+
+An illustrative `upto` trace, shortened to the fields to point out during the demo:
+
+```text
+[HTTP] → GET /api/trump-insider/upto without payment
+[HTTP] ← 402 PAYMENT-REQUIRED (decoded): {"scheme":"upto","amount":"1000",...}
+[HTTP] → GET /api/trump-insider/upto PAYMENT-SIGNATURE: [redacted]
+[HTTP] ← 200 PAYMENT-RESPONSE (decoded): {"success":true,"transaction":"...","amount":"300"}
+[HTTP] ← JSON body preview: {"reportId":"FICTION-...","headline":"...","fictional":true}
+```
+
 ## Recover an expired upto deposit
 
 If `open` succeeded but `settle` did not, the payer can reclaim the escrow after the channel's expiry without the gateway or facilitator. Use the same `PAYMENT_CLIENT_KEYPAIR_FILE`, `GATEWAY_PAY_TO`, and Devnet RPC as the original payment. The payer needs SOL to pay the refund transaction fee.

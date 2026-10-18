@@ -37,7 +37,7 @@ Sources: [Issue #90](https://github.com/solana-foundation/payment-channels/issue
 
 ## 60-second video cue — current demo, not Issue #90 recovery
 
-Play a recorded run of the existing `exact` or repository-specific `upto` flow after Slide 3. Show the 402 quote, client-side budget check and signed retry, facilitator result, and paid API response. Label simulated RPC or LiteSVM footage as local testing; do not present it as a confirmed Devnet transfer or as the planned Issue #90 recovery. The video is a planned presentation asset and has not been recorded or timed. If it is unavailable, use this minute for a clearly labeled walkthrough of the same current flow.
+Play a recorded run of the existing `exact` or repository-specific `upto` flow after Slide 3. Enable `PAYMENT_DEMO_TRACE=1` to show the initial GET, the decoded 402 quote, the signed retry with its payload redacted, the decoded settlement header, and the paid JSON preview. Label simulated RPC or LiteSVM footage as local testing; do not present it as a confirmed Devnet transfer or as the planned Issue #90 recovery. The video is a planned presentation asset and has not been recorded or timed. If it is unavailable, use this minute for a clearly labeled walkthrough of the same current flow.
 
 ## Slide 4 — Problem
 
