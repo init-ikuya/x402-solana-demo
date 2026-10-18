@@ -1,60 +1,65 @@
 # Auth-Capture on Solana — speaker script
 
-A standalone seven-slide English talk for five minutes. See the [slides](slides.md) and [design](ARCHITECTURE.md). The Issue #90 talk remains an alternative. Demo Day is tentatively October 19 or 21, 2026.
+A seven-slide English presentation designed for a four-minute slot, including a planned 60-second video of the current `exact` / `upto` demo. See the [slides](slides.md) and [design](ARCHITECTURE.md). Auth-capture remains a proposal; the Issue #90 talk is an alternative. Demo Day is tentatively October 19 or 21, 2026.
 
 ## Timing
 
 | Slide | Content | Seconds |
 | --- | --- | --- |
-| 1 | Introduction | 20 |
-| 2 | Evidence | 40 |
-| 3 | Actors | 40 |
-| 4 | Lifecycle | 50 |
-| 5 | Money | 45 |
-| 6 | Tests | 45 |
-| 7 | Scope | 40 |
+| 1 | Introduction | 15 |
+| 2 | Evidence | 20 |
+| 3 | Actors | 30 |
+|  | Current demo video | 60 |
+| 4 | Lifecycle | 30 |
+| 5 | Money | 25 |
+| 6 | Tests | 20 |
+| 7 | Scope | 20 |
 
-Total: 280 seconds plus 20 seconds of slack. Narration and live demo time have not been measured.
+Total: 160 seconds of narration + 60 seconds of demo video + 20 seconds for transitions = 240 seconds. These are targets, not measured reading or video times.
 
 ## Slide 1 — Introduction
 
-> Hi everyone. This presentation explores auth-capture payments on Solana. An agent agrees to a spending ceiling, funds a hold, and the merchant later captures payment or releases unused funds. This is a proposed Anchor implementation, not a completed payment system.
+> Hi everyone. This talk explores auth-capture on Solana: an agent funds a spending hold, then the merchant captures the charge or releases unused funds. This is a proposed Anchor design, not a completed payment flow.
 
 Basis: Our [design](ARCHITECTURE.md) starts from the lifecycle and network implementation requirements in the [generic specification](https://github.com/x402-foundation/x402/blob/cb0ec5bca0a5b21860a36bb60f34433c2e8e0d71/specs/schemes/auth-capture/scheme_auth_capture.md). The specific accounts, signature method, money example, and tests are proposals, not an official Solana specification or measured results.
 
 ## Slide 2 — Evidence
 
-> The generic x402 specification already defines this payment lifecycle. In the official source snapshot we reviewed, we did not find a Solana auth-capture specification or SDK implementation. That does not prove nobody else is developing one. Our contribution target is a concrete Solana binding with documented authorities, accounting, and tests. The repository still covers four schemes, while this talk focuses on one.
+> The generic x402 specification defines auth-capture, but we did not find a Solana binding or SDK implementation in the official snapshot we reviewed. That is a limited observation, not a claim to be first. Our goal is to specify the Solana authorities, accounting, and tests.
 
 Sources: [Generic specification](https://github.com/x402-foundation/x402/blob/cb0ec5bca0a5b21860a36bb60f34433c2e8e0d71/specs/schemes/auth-capture/scheme_auth_capture.md), [specification directory](https://github.com/x402-foundation/x402/tree/cb0ec5bca0a5b21860a36bb60f34433c2e8e0d71/specs/schemes/auth-capture), and [SVM SDK](https://github.com/x402-foundation/x402/tree/cb0ec5bca0a5b21860a36bb60f34433c2e8e0d71/typescript/packages/mechanisms/svm/src). The statement is limited to the public materials reviewed.
 
 ## Slide 3 — Actors
 
-> In our current exact and upto demo, the model calls a paid API tool, while application code checks the budget and signs with the client wallet. Auth-capture integration is planned. In that proposed flow, the client signs hold funding. The gateway performs the task and signs capture, cancellation, and refund operations. The facilitator sponsors transaction fees and relays those transactions. The Anchor program checks the required signatures, deadlines, amounts, and operation sequence. It controls the hold vault through a payment account. If the service disappears, the client has a direct recovery path that does not depend on the facilitator.
+> Today our agent can call a paid API through `exact` or our repository-specific `upto` escrow. Application code checks the budget and signs; the model never holds the key. In the proposed auth-capture flow, the client funds the hold, the merchant authorizes capture or refund, and the program enforces amounts and deadlines. Here is a short recording of what runs today.
 
 Basis: Our [design](ARCHITECTURE.md) starts from the lifecycle and network implementation requirements in the [generic specification](https://github.com/x402-foundation/x402/blob/cb0ec5bca0a5b21860a36bb60f34433c2e8e0d71/specs/schemes/auth-capture/scheme_auth_capture.md). The specific accounts, signature method, money example, and tests are proposals, not an official Solana specification or measured results.
 
+## 60-second video cue — current demo, not auth-capture
+
+Play a recorded run of the existing `exact` or repository-specific `upto` flow after Slide 3. Show the 402 quote, the client budget check and signed retry, the facilitator result, and the paid API response. Label simulated RPC or LiteSVM footage as local testing; do not present it as a confirmed Devnet transfer. The video is a planned presentation asset and has not been recorded or timed. If it is unavailable, use this minute for a clearly labeled walkthrough of the same current flow; do not improvise an auth-capture demonstration.
+
 ## Slide 4 — Lifecycle
 
-> Our first demonstration uses the escrow flow. A hold must be confirmed before the paid task runs. On success, the merchant captures the actual price and releases the remainder in one transaction. On failure, it can void the remaining hold. If the service disappears, the client waits until the capture deadline and reclaims what remains. A later refund is different: the merchant must authorize it and provide the money. The program does not decide whether an answer was useful or correct.
+> Auth-capture itself is still planned. The first design uses escrow: confirm the hold before work begins, then capture the actual price and release the rest. The merchant may void an unused hold. If the service disappears, the client can reclaim the remainder after the deadline. A later refund requires merchant authorization and funds.
 
 Basis: Our [design](ARCHITECTURE.md) starts from the lifecycle and network implementation requirements in the [generic specification](https://github.com/x402-foundation/x402/blob/cb0ec5bca0a5b21860a36bb60f34433c2e8e0d71/specs/schemes/auth-capture/scheme_auth_capture.md). The specific accounts, signature method, money example, and tests are proposals, not an official Solana specification or measured results.
 
 ## Slide 5 — Money
 
-> Here is an illustrative example with test tokens. The client deposits one token. The merchant captures point three, and point seven returns from the vault to the client. Later, the merchant refunds point one from its own wallet. The client has recovered point eight, and the merchant retains point two. A refund does not create a new right to capture more money. If the merchant has no refund liquidity, the refund fails without changing the accounting.
+> For example, from a one-token hold, capture point three and return point seven. If the merchant later refunds point one from its own wallet, the client has recovered point eight and the merchant retains point two. A refund never increases the capture allowance.
 
 Basis: Our [design](ARCHITECTURE.md) starts from the lifecycle and network implementation requirements in the [generic specification](https://github.com/x402-foundation/x402/blob/cb0ec5bca0a5b21860a36bb60f34433c2e8e0d71/specs/schemes/auth-capture/scheme_auth_capture.md). The specific accounts, signature method, money example, and tests are proposals, not an official Solana specification or measured results.
 
 ## Slide 6 — Tests
 
-> The tests should cover more than a successful transfer. Wrong signers, changed destinations, and amounts above the allowed balance must fail. We will test both sides of each deadline, repeated operations, and attempts to fund the same payment twice. We also need restart and timeout recovery, because a missing response does not mean a transaction failed. State counters and token transfers must succeed or fail together.
+> Tests must reject wrong signers, changed destinations, excessive amounts, replay, and early reclaim. We also need to reconcile timeouts before retrying. Token transfers and state counters must change atomically.
 
 Basis: Our [design](ARCHITECTURE.md) starts from the lifecycle and network implementation requirements in the [generic specification](https://github.com/x402-foundation/x402/blob/cb0ec5bca0a5b21860a36bb60f34433c2e8e0d71/specs/schemes/auth-capture/scheme_auth_capture.md). The specific accounts, signature method, money example, and tests are proposals, not an official Solana specification or measured results.
 
 ## Slide 7 — Scope
 
-> Today the program has a single-request escrow prototype for upto; auth-capture remains a design. Its first milestone is a testable hold and capture lifecycle, followed by merchant-funded refunds and recovery. Direct charge under the authorization flow needs a separate design and tests. We will not label an escrow-only demonstration as complete auth-capture support. The goal is to make the missing Solana-specific decisions explicit and verify them before claiming interoperability. Thank you.
+> The running `upto` escrow is a local prototype. Auth-capture is the next design and implementation target, followed by refunds and recovery. Direct charge needs separate work. We will verify these rules before claiming Solana interoperability. Thank you.
 
 Basis: Our [design](ARCHITECTURE.md) starts from the lifecycle and network implementation requirements in the [generic specification](https://github.com/x402-foundation/x402/blob/cb0ec5bca0a5b21860a36bb60f34433c2e8e0d71/specs/schemes/auth-capture/scheme_auth_capture.md). The specific accounts, signature method, money example, and tests are proposals, not an official Solana specification or measured results.
 

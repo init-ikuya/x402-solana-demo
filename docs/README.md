@@ -14,10 +14,10 @@
 
 ## Presentation materials
 
-These materials are for the Solana School: Fall Class Demo Day. The presentation is **in English and five minutes long**. The date is **October 19 or 21, 2026** (not yet confirmed, according to the presenter).
+These materials are for the Solana School: Fall Class Demo Day. The presentation is **in English and four minutes long**. A video may be used for approximately one minute of the demo. The date is **October 19 or 21, 2026** (not yet confirmed, according to the presenter).
 
 - [Issue #90 slides](topics/closing-settlement/slides.md): Alternative presentation with seven main slides and two optional demo architecture and FAQ slides. `---` separates slides.
-- [Issue #90 speaker script](topics/closing-settlement/script.md): English narration, timing, and presenter notes for each slide. The target is 4 minutes 40 seconds of narration plus 20 seconds of slack.
+- [Issue #90 speaker script](topics/closing-settlement/script.md): English narration, timing, a planned one-minute current-demo video cue, and presenter notes for each slide.
 - [Auth-capture slides](topics/auth-capture/slides.md): Submission candidate with seven main slides and two optional demo architecture and FAQ slides. See the [dedicated architecture](topics/auth-capture/ARCHITECTURE.md) and [speaker script](topics/auth-capture/script.md).
 - Put any diagrams or screenshots in the relevant topic's `assets/` directory and reference them with relative paths.
 
@@ -26,7 +26,7 @@ The slides are Markdown in [Marp](https://marp.app/) format. Diagrams and layout
 ## Current materials and timing
 
 - The main presentation focuses on auth-capture: seven English slides plus two optional demo architecture and FAQ slides for questions. It explains the design and validation plan for holds, capture, release, and refunds, along with current progress. The repository still targets four schemes.
-- The target is 4 minutes 40 seconds of narration plus 20 seconds of slack. Reading time and live demo time have not been measured since the latest edits.
+- The four-minute plan allocates 160 seconds to narration, 60 seconds to a prerecorded demo of the existing `exact` / `upto` paths, and 20 seconds to transitions. The video has not been recorded, and neither narration nor video duration has been measured. The video must be labeled as a demo of existing local tests, not a completed `auth-capture` or Issue #90 recovery flow.
 - The Issue #83 alternative was dropped after reviewing the existing fix in PR #84.
 - HTML and PDFs are excluded from Git. Regenerate them after editing the Markdown sources.
 - Both the Issue #90 and auth-capture nine-page PDFs have been generated and checked for layout. Reading time after the latest edits has not been measured.
@@ -51,7 +51,7 @@ npx --yes @marp-team/marp-cli@4.5.0 --html docs/topics/closing-settlement/slides
 npx --yes @marp-team/marp-cli@4.5.0 --html docs/topics/closing-settlement/slides.md --pdf -o docs/topics/closing-settlement/slides.pdf
 ```
 
-Generated files are excluded from Git; Markdown remains the editable source. To generate the auth-capture version, replace `closing-settlement` with `auth-capture` in the commands. Both versions target 4 minutes 40 seconds of narration plus 20 seconds of slack.
+Generated files are excluded from Git; Markdown remains the editable source. To generate the auth-capture version, replace `closing-settlement` with `auth-capture` in the commands. Both scripts use the same four-minute schedule, including a planned one-minute demo video.
 
 ## Evidence and citations
 
@@ -62,7 +62,7 @@ Generated files are excluded from Git; Markdown remains the editable source. To 
 
 ## Before presenting
 
-- Time the narration and adjust for slide transitions and any live demo to stay within five minutes.
+- Rehearse narration, video playback, and slide transitions together; keep the full presentation within four minutes.
 - Update implemented features, test results, and demo steps to match actual progress.
 - Record demo logs, the commit used, and any Devnet transactions.
 - Verify reference commits and primary sources before including upstream comparisons.

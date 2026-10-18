@@ -1,60 +1,65 @@
 # Fall Class — Issue #90 speaker script
 
-A standalone seven-slide English talk for five minutes. Demo Day is tentatively October 19 or 21, 2026, according to the presenter. The four-scheme implementation goal remains, while this talk focuses on Issue #90. The Issue #83 alternative was dropped.
+A seven-slide English presentation designed for a four-minute slot, including a planned 60-second video of the current `exact` / `upto` demo. Demo Day is tentatively October 19 or 21, 2026. The four-scheme implementation goal remains, while this talk focuses on the proposed Issue #90 recovery path. The Issue #83 alternative was dropped.
 
 ## Timing
 
 | Slide | Content | Seconds |
 | --- | --- | --- |
-| 1 | Introduction | 20 |
-| 2 | Context | 35 |
-| 3 | Actors | 45 |
-| 4 | Problem | 45 |
-| 5 | Proposed route | 50 |
-| 6 | Validation | 50 |
-| 7 | Progress | 35 |
+| 1 | Introduction | 15 |
+| 2 | Context | 20 |
+| 3 | Actors | 30 |
+|  | Current demo video | 60 |
+| 4 | Problem | 25 |
+| 5 | Proposed route | 30 |
+| 6 | Validation | 25 |
+| 7 | Progress | 15 |
 
-Total: 280 seconds plus 20 seconds of slack. This is an estimate, not a measured reading time, and excludes any live demo.
+Total: 160 seconds of narration + 60 seconds of demo video + 20 seconds for transitions = 240 seconds. These are targets, not measured reading or video times.
 
 ## Slide 1 — Introduction
 
-> Hi everyone. This project implements x402 payments on Solana. The repository covers four payment schemes, but this talk focuses on one recovery problem: what happens when a client closes a channel and the payment facilitator is unavailable? That recovery change is still at the design stage.
+> Hi everyone. This project explores x402 payments on Solana. Today I will focus on Issue #90: recovering a merchant payment when a channel is closing and the facilitator is offline. The recovery change is still a design.
 
 Basis: [Current program](../../../programs/anchoring-payment-channels/src/lib.rs) and our [design and validation plan](ARCHITECTURE.md#design-focus-issue-90-planned). Do not present planned work as an implemented result.
 
 ## Slide 2 — Context
 
-> In batch settlement, a client signs payment vouchers while an API handles requests. The merchant collects the vouchers and redeems them later. Solana specifications and SDK code already exist, and the Foundation reports its channel program live on mainnet. My focus is an improvement described in upstream issue ninety, rather than a claim that Solana payments do not exist.
+> In batch settlement, the client signs cumulative vouchers while the merchant serves requests. The merchant redeems the latest voucher later. Solana specifications and SDK code already exist; the Foundation reports its channel program live on mainnet. Our target is a particular recovery gap.
 
 Sources: [SVM batch-settlement specification](https://github.com/x402-foundation/x402/blob/cb0ec5bca0a5b21860a36bb60f34433c2e8e0d71/specs/schemes/batch-settlement/scheme_batch_settlement_svm.md), [SDK](https://github.com/x402-foundation/x402/blob/cb0ec5bca0a5b21860f34433c2e8e0d71/typescript/packages/mechanisms/svm/src/batch-settlement/README.md), and [Foundation README](https://github.com/solana-foundation/payment-channels/blob/3ffa4d6728ad88e4a9667a76ad9ccd68a302c696/README.md). Mainnet operation is the provider's report, not our independent verification.
 
 ## Slide 3 — Actors
 
-> There are three actors. In our current exact and upto demo, the model calls a paid API tool, while application code checks the budget and signs with the client wallet. Batch integration is planned. In the proposed batch flow, the client funds the channel and signs payment vouchers. The gateway provides the API and keeps the latest voucher. The facilitator sponsors transactions and holds the channel payee authority. In this arrangement, that authority belongs to the facilitator, not the merchant receiving the API payment. Our recovery worker will give the merchant a separate submission route, with its own RPC connection and transaction fees.
+> Our running demo already has an agent, gateway, and local facilitator for `exact` and a custom `upto` path. The client application controls signing and budgets. The proposed batch path adds a long-lived channel: the gateway stores the latest voucher, while the facilitator sponsors transactions and holds lifecycle authority. The merchant would have a separate route to submit a voucher when the facilitator is unavailable. First, here is the current demo.
 
 Sources: [Issue #90](https://github.com/solana-foundation/payment-channels/issues/90), [current `settle` state restriction](https://github.com/solana-foundation/payment-channels/blob/3ffa4d6728ad88e4a9667a76ad9ccd68a302c696/program/payment_channels/src/instructions/settle.rs), [`settle_and_seal`](https://github.com/solana-foundation/payment-channels/blob/3ffa4d6728ad88e4a9667a76ad9ccd68a302c696/program/payment_channels/src/instructions/settle_and_seal.rs), and [distribution and closure instructions](https://github.com/solana-foundation/payment-channels/blob/3ffa4d6728ad88e4a9667a76ad9ccd68a302c696/README.md#instructions). The direct-submission worker and outage demo are [our design](ARCHITECTURE.md#design-focus-issue-90-planned).
 
+## 60-second video cue — current demo, not Issue #90 recovery
+
+Play a recorded run of the existing `exact` or repository-specific `upto` flow after Slide 3. Show the 402 quote, client-side budget check and signed retry, facilitator result, and paid API response. Label simulated RPC or LiteSVM footage as local testing; do not present it as a confirmed Devnet transfer or as the planned Issue #90 recovery. The video is a planned presentation asset and has not been recorded or timed. If it is unavailable, use this minute for a clearly labeled walkthrough of the same current flow.
+
 ## Slide 4 — Problem
 
-> Imagine that the merchant has already served several requests and holds a valid voucher. Before it is settled, the client requests closure. The channel enters Closing and a grace period begins. Normal settlement currently rejects that state. The alternative is cooperative settlement and sealing, which requires the facilitator signature. If the facilitator is offline, the merchant cannot use either route independently. This is the failure scenario we want to reproduce.
+> Suppose the merchant served requests and holds a valid voucher. The client requests closure, putting the channel into Closing. Normal settlement rejects that state. Cooperative settlement requires the facilitator signature. If it is offline, the merchant cannot independently record the payment during the grace period.
 
 Sources: [Issue #90](https://github.com/solana-foundation/payment-channels/issues/90), [current `settle` state restriction](https://github.com/solana-foundation/payment-channels/blob/3ffa4d6728ad88e4a9667a76ad9ccd68a302c696/program/payment_channels/src/instructions/settle.rs), [`settle_and_seal`](https://github.com/solana-foundation/payment-channels/blob/3ffa4d6728ad88e4a9667a76ad9ccd68a302c696/program/payment_channels/src/instructions/settle_and_seal.rs), and [distribution and closure instructions](https://github.com/solana-foundation/payment-channels/blob/3ffa4d6728ad88e4a9667a76ad9ccd68a302c696/README.md#instructions). The direct-submission worker and outage demo are [our design](ARCHITECTURE.md#design-focus-issue-90-planned).
 
 ## Slide 5 — Proposed route
 
-> The proposal allows normal settlement during Closing, strictly before the deadline. The merchant submits the saved voucher directly. The program still validates its signature, channel, expiry, and amount. It records the settlement and leaves the channel Closing. This does not transfer tokens or extend the deadline. After the deadline, sealing and distribution complete the payment and refund. If the channel was already sealed, the recovery fails; this is not a guarantee against every race.
+> Issue #90 proposes allowing ordinary settlement during Closing, strictly before the deadline. A merchant worker submits the stored voucher. The program still checks its signature, channel, expiry, and amount. Settlement records the claim but does not transfer tokens. Sealing and distribution happen later. An already sealed channel cannot be rescued.
 
 Sources: [Issue #90](https://github.com/solana-foundation/payment-channels/issues/90), [current `settle` state restriction](https://github.com/solana-foundation/payment-channels/blob/3ffa4d6728ad88e4a9667a76ad9ccd68a302c696/program/payment_channels/src/instructions/settle.rs), [`settle_and_seal`](https://github.com/solana-foundation/payment-channels/blob/3ffa4d6728ad88e4a9667a76ad9ccd68a302c696/program/payment_channels/src/instructions/settle_and_seal.rs), and [distribution and closure instructions](https://github.com/solana-foundation/payment-channels/blob/3ffa4d6728ad88e4a9667a76ad9ccd68a302c696/README.md#instructions). The direct-submission worker and outage demo are [our design](ARCHITECTURE.md#design-focus-issue-90-planned).
 
 ## Slide 6 — Validation
 
-> I will compare baseline and modified behavior using the same outage scenario. The tests will check the instant before the deadline, the deadline itself, and the time afterward. Invalid signatures, excessive amounts, and duplicate vouchers must still fail. Settlement should only update state; distribution should pay once and return the unused balance. I also want to test restarts and unknown transaction outcomes, so a timeout does not accidentally cause an unsafe retry.
+> We plan paired tests of the baseline and modified program, just before, at, and after the deadline. Invalid signatures, excess amounts, and duplicate vouchers must still fail. We will also test distribution once, worker restarts, and uncertain transaction outcomes.
 
 Basis: [Current program](../../../programs/anchoring-payment-channels/src/lib.rs) and our [design and validation plan](ARCHITECTURE.md#design-focus-issue-90-planned). Do not present planned work as an implemented result.
 
 ## Slide 7 — Progress
 
-> Today the repository contains a single-request Anchor escrow prototype for upto. Next I will reproduce the batch channel lifecycle, implement the changed state gate, and compare the results. All four payment schemes remain in the repository scope. This presentation focuses on reducing facilitator dependence during the Closing grace period. Thank you.
+> Today we have a single-request `upto` escrow prototype. Batch channel recovery is planned. The goal is a testable merchant fallback during Closing, not a claim of completed recovery. Thank you.
 
 Basis: [Current program](../../../programs/anchoring-payment-channels/src/lib.rs) and our [design and validation plan](ARCHITECTURE.md#design-focus-issue-90-planned). Do not present planned work as an implemented result.
 
@@ -76,4 +81,4 @@ The app, not the model, holds the local Solana signing key. The model calls a pa
 
 ## Before presenting
 
-Read the script aloud and adjust it to fit five minutes. After implementation, update test results, execution logs, and reference commits, distinguishing plans from observations. The experimental Anchor program is a separate deployment; do not suggest that it changes the official canonical program.
+Rehearse the narration and video together, and adjust them to fit four minutes. After implementation, update test results, execution logs, and reference commits, distinguishing plans from observations. The experimental Anchor program is a separate deployment; do not suggest that it changes the official canonical program.
