@@ -84,9 +84,9 @@ flowchart TB
         Exact["exact: verify and transfer"]
         Batch["batch-settlement: accept vouchers, settle later"]
         Upto["upto: deposit ceiling, settle actual"]
-        Capture["auth-capture: escrow lifecycle first; direct charge later"]
+        Capture["auth-capture: escrow lifecycle first, direct charge later"]
         Store[("Persistent payment and request state")]
-        Recovery["PRIMARY TARGET #90: merchant recovery worker; own RPC and SOL fee payer"]
+        Recovery["PRIMARY TARGET #90: merchant recovery worker with own RPC and SOL fee payer"]
         HTTP --> Coordinator --> Router
         Router --> Exact
         Router --> Batch
@@ -105,8 +105,8 @@ flowchart TB
         Token["Token program"]
         UptoProgram["Project Anchor program: upto escrow"]
         subgraph Custom["Planned Anchor components"]
-            Channel["PRIMARY TARGET #90: batch channel; Closing settlement record, then distribution"]
-            Hold["PRIMARY TARGET: Solana auth-capture state and hold escrow; merchant-funded refunds"]
+            Channel["PRIMARY TARGET #90: batch channel, Closing settlement record, then distribution"]
+            Hold["PRIMARY TARGET: Solana auth-capture state and hold escrow with merchant-funded refunds"]
         end
         UptoProgram -->|Token CPI| Token
         Channel -->|Token CPI on deposit and distribution| Token
@@ -155,7 +155,7 @@ flowchart LR
         Program -->|CPI: deposit, settlement, refund| Token
         Token -->|Move tokens into or out of| Vault
     end
-    Tool -->|Open and fund channel; request refund| Program
+    Tool -->|Open and fund channel, request refund| Program
     Gateway -->|Submit settlement with signed voucher| Program
 ```
 
@@ -190,13 +190,13 @@ sequenceDiagram
     User->>Agent: Configure wallet, budget, and task
     Agent->>Chain: Open channel and deposit tokens
     Chain-->>Agent: Confirm channel and escrow funding
-    Note over Agent: LLM selects paid tool; application controls signing
+    Note over Agent: LLM selects paid tool, application controls signing
     loop Paid tool requests while channel is usable
         Agent->>Gateway: Request without payment authorization
         Gateway-->>Agent: HTTP 402 with payment requirements
-        Agent->>Agent: Validate terms and budget; sign cumulative voucher
+        Agent->>Agent: Validate terms and budget, then sign cumulative voucher
         Agent->>Gateway: Retry request with voucher
-        Gateway->>Gateway: Validate voucher and channel; check request duplication
+        Gateway->>Gateway: Validate voucher and channel, then check request duplication
         Gateway->>Store: Persist accepted voucher and request status
         Gateway->>API: Execute authorized request
         API-->>Gateway: API result
@@ -204,7 +204,7 @@ sequenceDiagram
         Gateway-->>Agent: Tool result for the LLM
     end
     Gateway->>Chain: Ed25519 verification instruction + settlement instruction
-    Chain->>Chain: Validate; transfer delta; update settled total atomically
+    Chain->>Chain: Validate, transfer delta, and update settled total atomically
     Chain-->>Gateway: Confirm settlement
     Gateway->>Store: Record confirmed settlement
     Note over Agent,Chain: Refund eligibility depends on lifecycle rules still to be defined
@@ -287,7 +287,7 @@ erDiagram
         pubkey address
     }
     CHANNEL {
-        pubkey address "PDA; seeds TBD"
+        pubkey address "PDA, seeds TBD"
         pubkey voucher_authority "Client signing key"
         pubkey recipient "Settlement beneficiary"
         pubkey refund_recipient "Unused-funds beneficiary"

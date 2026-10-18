@@ -55,7 +55,7 @@ sequenceDiagram
     participant S as This repository's Anchor program
     C->>G: GET /api/trump-insider/upto
     G-->>C: 402 PAYMENT-REQUIRED (upto, ceiling 1000)
-    Note over C: Check terms and budget; sign open for the ceiling
+    Note over C: Check terms and budget, then sign open for the ceiling
     C->>G: GET + PAYMENT-SIGNATURE
     G->>F: POST /settle (deposit)
     F->>S: Submit open and confirm

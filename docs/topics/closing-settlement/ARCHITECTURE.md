@@ -85,17 +85,17 @@ The direct Closing `settle` edge is the #90 change. The recovery worker holds th
 
 ```mermaid
 flowchart TD
-    Start["Client requests closure; channel becomes Closing"]
+    Start["Client requests closure and channel becomes Closing"]
     Deadline["Read on-chain status and deadline = closure_started_at + grace_period"]
     Available{"Facilitator responds?"}
     Normal["Normal route: facilitator submits settle_and_seal with latest voucher"]
     Direct["Fallback: gateway submits latest voucher via settle"]
     Gate{"Program execution: still Closing and now before deadline?"}
-    Voucher{"Valid signature and channel binding; SVM batch expiresAt = 0; settled less than total; total at most deposit?"}
-    Update["Advance settled watermark; remain Closing; no token transfer"]
-    Wait["Wait for deadline; permissionless seal"]
+    Voucher{"Valid signature and channel binding, SVM batch expiresAt = 0, settled less than total, total at most deposit?"}
+    Update["Advance settled watermark, remain Closing, no token transfer"]
+    Wait["Wait for deadline, then permissionless seal"]
     Dist["Distribute recorded payment and unused-fund refund"]
-    Reject["Reject without mutation; reload state and reconcile"]
+    Reject["Reject without mutation, reload state and reconcile"]
     Start --> Deadline --> Available
     Available -->|Yes| Normal --> Dist
     Available -->|No or timeout| Direct --> Gate

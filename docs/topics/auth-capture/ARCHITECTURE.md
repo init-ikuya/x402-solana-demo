@@ -92,10 +92,10 @@ sequenceDiagram
     participant P as Anchor program
     A->>G: Request paid task
     G-->>A: 402: ceiling, mint, recipient, deadlines, experimental binding
-    A->>A: Validate terms and budget; sign authorize transaction
+    A->>A: Validate terms and budget, then sign authorize transaction
     A->>G: Retry with payment payload
     G->>F: Settle hold with client authorization
-    F->>P: Add fee signature; submit authorize
+    F->>P: Add fee signature, then submit authorize
     P-->>F: Confirm hold funded
     F-->>G: Confirm hold
     G->>G: Execute task and record outcome
@@ -106,7 +106,7 @@ sequenceDiagram
         G-->>A: Task result and payment result
         opt Merchant agrees to later refund
             G->>F: Merchant-signed refund(amount, next sequence)
-            F->>P: Transfer merchant tokens to client; record refund
+            F->>P: Transfer merchant tokens to client and record refund
         end
     else Task fails while merchant is available
         G->>F: Merchant-signed void(next sequence)
