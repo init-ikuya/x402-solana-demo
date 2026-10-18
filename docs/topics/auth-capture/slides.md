@@ -82,9 +82,9 @@ style: |
 ---
 
 
-<div class="eyebrow">Solana School · Fall Class / Demo Day</div>
+<div class="eyebrow">Work in progress · Solana School / Demo Day</div>
 <div class="cover-layout"><div><h1>Hold.<br>Capture.<br><span class="accent">Refund.</span></h1><p class="cover-sub">Designing auth-capture<br>for x402 on Solana.</p></div><div class="cover-flow"><div class="cover-step"><span>01</span> Agree on a spending ceiling</div><div class="cover-step"><span>02</span> Pay for the completed work</div><div class="cover-step"><span>03</span> Release or refund funds</div><p class="small muted">Independent Anchor prototype proposal<br>No claim of completed implementation</p></div></div>
-<p class="date">October <span>19 or 21</span>, 2026 <span>· Date TBD</span></p>
+<p class="date">October <span>19 or 21</span>, 2026 <span>· Date TBD · Draft</span></p>
 <div class="sources">Lifecycle concept: <a href="https://github.com/x402-foundation/x402/blob/cb0ec5bca0a5b21860a36bb60f34433c2e8e0d71/specs/schemes/auth-capture/scheme_auth_capture.md">generic auth-capture specification</a> · <a href="ARCHITECTURE.md">Our Solana design</a></div>
 
 ---

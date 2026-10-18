@@ -16,16 +16,16 @@
 
 Solana School: Fall Class の Demo Day 向け資料を管理します。発表は **英語・5分** です。Demo Day は **2026年10月19日または21日（日程未確定、発表者からの情報）** です。
 
-- [Issue #90のスライド](topics/closing-settlement/slides.md): 英語の本編7枚＋任意のデモ構成・FAQ補足2枚。`---` をスライドの区切りとして使います。
+- [Issue #90のスライド](topics/closing-settlement/slides.md): 別案。英語の本編7枚＋任意のデモ構成・FAQ補足2枚。`---` をスライドの区切りとして使います。
 - [Issue #90の読み上げ原稿](topics/closing-settlement/script.md): スライドごとの英語読み上げ原稿、時間配分、日本語の発表者メモ。4分40秒の説明と20秒の余裕を目標にします。
-- [auth-captureのスライド](topics/auth-capture/slides.md): Solana auth-captureを主題にした別案（英語の本編7枚＋任意のデモ構成・FAQ補足2枚）。[専用アーキテクチャ](topics/auth-capture/ARCHITECTURE.md)と[読み上げ原稿](topics/auth-capture/script.md)を用意しています。#90案とは独立して発表できます。
+- [auth-captureのスライド](topics/auth-capture/slides.md): 提出候補。Solana auth-captureを主題にした英語の本編7枚＋任意のデモ構成・FAQ補足2枚。[専用アーキテクチャ](topics/auth-capture/ARCHITECTURE.md)と[読み上げ原稿](topics/auth-capture/script.md)を用意しています。
 - 図やスクリーンショットを追加する場合は、各テーマのディレクトリの `assets/` に配置し、原稿から相対パスで参照します。
 
 スライドは [Marp](https://marp.app/) 形式の Markdown です。図とレイアウトにはHTML/CSSを使用するため、生成時は `--html` を付けます。16:9・ページ番号付きで生成できます。読み上げ原稿は別ファイルで管理します。
 
 ## 現在の資料と時間配分
 
-- 主資料はIssue #90に絞った英語の本編7枚と、質問時だけ使うデモ構成・FAQ補足2枚です。背景、登場人物、問題、直接精算経路、検証計画、進捗を説明します。リポジトリの4方式実装要件は維持します。
+- 主資料はauth-captureに絞った英語の本編7枚と、質問時だけ使うデモ構成・FAQ補足2枚です。保留、確定、解放、返金の設計と検証計画、現在の進捗を説明します。リポジトリの4方式実装要件は維持します。
 - 本編の説明4分40秒＋予備20秒が目標です。FAQ補足は時間配分に含みません。更新後の原稿の音読とライブデモの時間は未計測です。
 - Issue #83の別案は、既存の修正PR #84を確認したためユーザー方針により取り下げました。
 - HTML/PDFはGit管理対象外です。Markdown更新後に以下のコマンドで再生成してください。

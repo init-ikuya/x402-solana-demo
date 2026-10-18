@@ -4,7 +4,7 @@
 
 Reimplement [solana-foundation/payment-channels](https://github.com/solana-foundation/payment-channels) using Rust and Anchor, then attempt additional features described as future work in the upstream issue.
 
-The project is intended for Demo Day at [Solana School: Fall Class](https://luma.com/jy1g8k90). The [presentation draft](topics/closing-settlement/slides.md) is maintained in this repository.
+The project is intended for Demo Day at [Solana School: Fall Class](https://luma.com/jy1g8k90). The [auth-capture presentation draft](topics/auth-capture/slides.md) is maintained in this repository.
 
 ## Demo scope and implementation languages
 
@@ -35,9 +35,9 @@ Keep the example applications in this repository's npm workspace and document co
 
 ## Presentation focus
 
-A second, independent presentation track covers the [Solana auth-capture design](topics/auth-capture/ARCHITECTURE.md) and [dedicated slides](topics/auth-capture/slides.md). It investigates the missing binding and an escrow-first prototype, with direct charge tracked separately. Both presentation options preserve the four-scheme implementation requirement.
+The selected presentation track covers the [Solana auth-capture design](topics/auth-capture/ARCHITECTURE.md) and [dedicated slides](topics/auth-capture/slides.md). It investigates the missing binding and an escrow-first prototype, with direct charge tracked separately. Both presentation options preserve the four-scheme implementation requirement.
 
-Use [Issue #90](https://github.com/solana-foundation/payment-channels/issues/90) as the focused batch-settlement experiment: direct merchant settlement during the Closing grace period. See [the architecture](topics/closing-settlement/ARCHITECTURE.md#design-focus-issue-90-planned) and [slides](topics/closing-settlement/slides.md). All four schemes remain required. Issue #83 is excluded from this presentation after reviewing existing [PR #84](https://github.com/solana-foundation/payment-channels/pull/84); recheck its status before presenting.
+The alternative [Issue #90](https://github.com/solana-foundation/payment-channels/issues/90) presentation covers direct merchant settlement during the Closing grace period. See [the architecture](topics/closing-settlement/ARCHITECTURE.md#design-focus-issue-90-planned) and [slides](topics/closing-settlement/slides.md). All four schemes remain required. Issue #83 was excluded from the #90 presentation after reviewing existing [PR #84](https://github.com/solana-foundation/payment-channels/pull/84); recheck its status before presenting.
 
 ## Implementation plan
 

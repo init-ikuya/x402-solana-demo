@@ -2,7 +2,7 @@
 
 An experimental Anchor reimplementation of [solana-foundation/payment-channels](https://github.com/solana-foundation/payment-channels), with additional experiments implementing future work discussed in the upstream issue.
 
-This project is being developed for Demo Day at [Solana School: Fall Class](https://luma.com/jy1g8k90). The [presentation draft](docs/topics/closing-settlement/slides.md) lives in this repository alongside the implementation.
+This project is being developed for Demo Day at [Solana School: Fall Class](https://luma.com/jy1g8k90). The [auth-capture presentation draft](docs/topics/auth-capture/slides.md) lives in this repository alongside the implementation.
 
 ## Status
 
@@ -26,7 +26,7 @@ See [ARCHITECTURE.md](docs/ARCHITECTURE.md) for the planned system architecture,
 
 For the running demo, see the [client–gateway–facilitator architecture](docs/demo-payment-architecture.md), including the `exact` and `upto` request sequences.
 
-The separate [auth-capture design](docs/topics/auth-capture/ARCHITECTURE.md) and [presentation](docs/topics/auth-capture/slides.md) explore a proposed Solana escrow and refund lifecycle. The [Issue #90 presentation](docs/topics/closing-settlement/slides.md) remains an alternative focus within the same four-scheme scope.
+The [auth-capture design](docs/topics/auth-capture/ARCHITECTURE.md) and [presentation](docs/topics/auth-capture/slides.md) explore a proposed Solana escrow and refund lifecycle. The [Issue #90 presentation](docs/topics/closing-settlement/slides.md) remains an alternative focus within the same four-scheme scope.
 
 ## Upstream
 
