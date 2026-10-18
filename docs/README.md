@@ -34,7 +34,7 @@ Solana School: Fall Class の Demo Day 向け資料を管理します。発表�
 ## アーキテクチャ図PDF生成
 
 提出用PDFは、リポジトリのルートで次のコマンドから再生成します。初回はMarp CLIのダウンロードにネットワーク接続が必要です。
-CIも同じMarkdownからPDFを生成し、nightly releaseとActions Artifactに含めます。PDF自体はGit管理対象外です。
+CIのbuildジョブも同じMarkdownからPDFを生成し、mainへのpushまたは手動実行時にnightly releaseへ含めます。PDF自体はGit管理対象外です。
 
 ```sh
 npx --yes @marp-team/marp-cli@4.5.0 --html --pdf docs/architecture-submission.md -o docs/architecture-submission.pdf

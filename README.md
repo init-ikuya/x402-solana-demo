@@ -60,17 +60,17 @@ cargo fmt --all -- --check
 
 ### Continuous integration
 
-[GitHub Actions](.github/workflows/ci.yml) checks every pull request, push to `main`, and `v*` tag push, and can also be run manually. Separate jobs check Rust formatting and build the SBF program plus IDL before running the Rust integration tests in LiteSVM.
+[GitHub Actions](.github/workflows/ci.yml) runs on every pull request, push to `main`, and `v*` tag push, and can also be run manually. The `lint` job checks Rust formatting and TypeScript types. The `test` job runs the payment example tests and builds the SBF program for LiteSVM tests. After both pass, the `build` job runs only for `main` pushes and manual dispatches, rebuilding the program and packaging the nightly release in the same job.
 
 CI uses Ubuntu 24.04, the Rust version in `rust-toolchain.toml`, Anchor CLI 1.2.0, Solana CLI 3.1.10, and SBF platform-tools v1.57. Anchor and Solana CLI binaries are downloaded from pinned upstream releases and verified with SHA-256 checksums. See the [Anchor release assets](https://github.com/otter-sec/anchor/releases/expanded_assets/v1.2.0) and [Agave release assets](https://github.com/anza-xyz/agave/releases/expanded_assets/v3.1.10) when updating these versions and checksums.
 
-The CI build uses `--arch v0 --ignore-keys`: the test loads the compiled program directly at the declared program ID, so CI does not need the deployment keypair. The test command explicitly skips building, deploying, and starting a validator. No GitHub secrets, funded wallet, or RPC endpoint is required. Rust dependencies and SBF tools are cached; dependency resolution must leave `Cargo.lock` unchanged.
+The CI builds use `--arch v0 --ignore-keys`: the test loads the compiled program directly at the declared program ID, so CI does not need the deployment keypair. The test command explicitly skips building, deploying, and starting a validator. No GitHub secrets, funded wallet, or RPC endpoint is required. CI uses no Actions Artifacts or caches; dependency resolution must leave `Cargo.lock` unchanged.
 
 ### Nightly builds
 
-Download the latest development build from [Nightly](https://github.com/init-ikuya/x402-solana-demo/releases/tag/nightly). A successful `main` push or explicit manual CI run updates the same rolling prerelease. This is not a scheduled nightly build. Manual runs can publish the selected branch; the release notes identify its ref and commit. PRs and `v*` tag pushes only produce Actions Artifacts, retained for seven days.
+Download the latest development build from [Nightly](https://github.com/init-ikuya/x402-solana-demo/releases/tag/nightly). A successful `main` push or explicit manual CI run updates the same rolling prerelease. This is not a scheduled nightly build. Manual runs can publish the selected branch; the release notes identify its ref and commit. PRs and `v*` tag pushes run checks without producing downloadable build outputs.
 
-Publication waits for both formatting and build/test jobs to succeed. Concurrent nightly runs are serialized, and rerunning an old `main` commit cannot replace the current main build. The release tag advances after assets upload. Release assets persist beyond the Actions Artifact retention period and are replaced on the next successful publication; the previous nightly remains if checks fail.
+Publication waits for the lint and test jobs to succeed. Concurrent nightly runs are serialized, and rerunning an old `main` commit cannot replace the current main build. The release tag advances after assets upload. Release assets are replaced on the next successful publication; the previous nightly remains if checks fail.
 
 Assets:
 
@@ -82,7 +82,7 @@ Assets:
 - `build-info.json`: Commit, source ref, workflow run, and tool versions.
 - `SHA256SUMS.txt`: Checksums; verify downloaded files with `sha256sum --check SHA256SUMS.txt`.
 
-Only these public files are packaged; deployment keypairs are excluded. The build job has read-only repository access; only the publication job receives `contents: write` using the automatic `GITHUB_TOKEN`. The same build package is also retained as an Actions Artifact for seven days, including on main/manual runs for transfer between jobs. Release updates are not atomic: download after the publication job completes and verify checksums.
+Only these public files are packaged; deployment keypairs are excluded. The lint and test jobs have read-only repository access; only the build job receives `contents: write` using the automatic `GITHUB_TOKEN` to publish the release. Release updates are not atomic: download after the build job completes and verify checksums.
 
 ### Development steps
 

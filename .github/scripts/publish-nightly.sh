@@ -16,7 +16,7 @@ fi
 
 cd "$RUNNER_TEMP/nightly"
 sha256sum --check SHA256SUMS.txt
-# Also prevent an artifact from a different commit from being published.
+# Verify that the package built in this job belongs to this commit.
 python3 -c 'import json, os; assert json.load(open("build-info.json"))["commit"] == os.environ["GITHUB_SHA"]'
 
 notes="$RUNNER_TEMP/nightly-notes.md"
