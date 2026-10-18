@@ -1,75 +1,71 @@
-# ドキュメント
+# Documentation
 
-## 共通資料とテーマ別資料
+## General and topic-specific documents
 
-- [全体アーキテクチャ](ARCHITECTURE.md)：4方式の実装方針、共通構成、アカウント設計。
-- [デモの3者間アーキテクチャ](demo-payment-architecture.md)：client、gateway、facilitator の役割と `exact` / `upto` の通信順序。提出用資料ではありません。
-- [exact と upto のデモ決済フロー](../examples/gateway/README.md#exact-payment-flow)：実装済みのクライアント、ゲートウェイ、facilitator の流れ。提出用資料ではありません。
-- [アーキテクチャ提出用の図](architecture-submission.md)・[3文の説明文](architecture-submission-blurb.md)：提出用の編集元。PDFは生成物としてGit管理対象外です。
-- [プロジェクトノート](ideas.md)：目的、スコープ、課題候補。
-- [AI Gatewayの構想](proposals/ai-gateway.md)：初期提案。現在の実装スコープは全体アーキテクチャとプロジェクトノートを参照してください。
-- Issue #90：[設計](topics/closing-settlement/ARCHITECTURE.md)・[スライド](topics/closing-settlement/slides.md)・[原稿](topics/closing-settlement/script.md)。
-- auth-capture：[設計](topics/auth-capture/ARCHITECTURE.md)・[スライド](topics/auth-capture/slides.md)・[原稿](topics/auth-capture/script.md)。
-- `references/`：学校の参考PDFなど。PDFはGit管理対象外なので、ローカルに保管します。
+- [Overall architecture](ARCHITECTURE.md): Implementation plan for four schemes, shared components, and account design.
+- [Three-party demo architecture](demo-payment-architecture.md): Client, gateway, and facilitator roles and the `exact` / `upto` request sequences. This is not a submission document.
+- [Exact and upto demo payment flows](../examples/gateway/README.md#exact-payment-flow): Implemented client, gateway, and facilitator flows. These are not submission documents.
+- [Architecture submission diagram](architecture-submission.md) and [three-sentence description](architecture-submission-blurb.md): Editable submission sources. Generated PDFs are excluded from Git.
+- [Project notes](ideas.md): Goals, scope, and candidate issues.
+- [AI Gateway proposal](proposals/ai-gateway.md): Initial proposal. See the overall architecture and project notes for the current implementation scope.
+- Issue #90: [design](topics/closing-settlement/ARCHITECTURE.md), [slides](topics/closing-settlement/slides.md), and [speaker script](topics/closing-settlement/script.md).
+- Auth-capture: [design](topics/auth-capture/ARCHITECTURE.md), [slides](topics/auth-capture/slides.md), and [speaker script](topics/auth-capture/script.md).
+- `references/`: Reference PDFs from the school and other local materials. PDFs are excluded from Git.
 
-## 発表資料
+## Presentation materials
 
-Solana School: Fall Class の Demo Day 向け資料を管理します。発表は **英語・5分** です。Demo Day は **2026年10月19日または21日（日程未確定、発表者からの情報）** です。
+These materials are for the Solana School: Fall Class Demo Day. The presentation is **in English and five minutes long**. The date is **October 19 or 21, 2026** (not yet confirmed, according to the presenter).
 
-- [Issue #90のスライド](topics/closing-settlement/slides.md): 別案。英語の本編7枚＋任意のデモ構成・FAQ補足2枚。`---` をスライドの区切りとして使います。
-- [Issue #90の読み上げ原稿](topics/closing-settlement/script.md): スライドごとの英語読み上げ原稿、時間配分、日本語の発表者メモ。4分40秒の説明と20秒の余裕を目標にします。
-- [auth-captureのスライド](topics/auth-capture/slides.md): 提出候補。Solana auth-captureを主題にした英語の本編7枚＋任意のデモ構成・FAQ補足2枚。[専用アーキテクチャ](topics/auth-capture/ARCHITECTURE.md)と[読み上げ原稿](topics/auth-capture/script.md)を用意しています。
-- 図やスクリーンショットを追加する場合は、各テーマのディレクトリの `assets/` に配置し、原稿から相対パスで参照します。
+- [Issue #90 slides](topics/closing-settlement/slides.md): Alternative presentation with seven main slides and two optional demo architecture and FAQ slides. `---` separates slides.
+- [Issue #90 speaker script](topics/closing-settlement/script.md): English narration, timing, and presenter notes for each slide. The target is 4 minutes 40 seconds of narration plus 20 seconds of slack.
+- [Auth-capture slides](topics/auth-capture/slides.md): Submission candidate with seven main slides and two optional demo architecture and FAQ slides. See the [dedicated architecture](topics/auth-capture/ARCHITECTURE.md) and [speaker script](topics/auth-capture/script.md).
+- Put any diagrams or screenshots in the relevant topic's `assets/` directory and reference them with relative paths.
 
-スライドは [Marp](https://marp.app/) 形式の Markdown です。図とレイアウトにはHTML/CSSを使用するため、生成時は `--html` を付けます。16:9・ページ番号付きで生成できます。読み上げ原稿は別ファイルで管理します。
+The slides are Markdown in [Marp](https://marp.app/) format. Diagrams and layout use HTML/CSS, so generation requires `--html`. The slides are 16:9 and have page numbers. Speaker scripts are separate files.
 
-## 現在の資料と時間配分
+## Current materials and timing
 
-- 主資料はauth-captureに絞った英語の本編7枚と、質問時だけ使うデモ構成・FAQ補足2枚です。保留、確定、解放、返金の設計と検証計画、現在の進捗を説明します。リポジトリの4方式実装要件は維持します。
-- 本編の説明4分40秒＋予備20秒が目標です。FAQ補足は時間配分に含みません。更新後の原稿の音読とライブデモの時間は未計測です。
-- Issue #83の別案は、既存の修正PR #84を確認したためユーザー方針により取り下げました。
-- HTML/PDFはGit管理対象外です。Markdown更新後に以下のコマンドで再生成してください。
-- Issue #90版とauth-capture版の9ページPDFは生成・レイアウト確認済みです。更新後の音読時間は未計測です。
+- The main presentation focuses on auth-capture: seven English slides plus two optional demo architecture and FAQ slides for questions. It explains the design and validation plan for holds, capture, release, and refunds, along with current progress. The repository still targets four schemes.
+- The target is 4 minutes 40 seconds of narration plus 20 seconds of slack. Reading time and live demo time have not been measured since the latest edits.
+- The Issue #83 alternative was dropped after reviewing the existing fix in PR #84.
+- HTML and PDFs are excluded from Git. Regenerate them after editing the Markdown sources.
+- Both the Issue #90 and auth-capture nine-page PDFs have been generated and checked for layout. Reading time after the latest edits has not been measured.
 
-## アーキテクチャ図PDF生成
+## Generate the architecture PDF
 
-提出用PDFは、リポジトリのルートで次のコマンドから再生成します。初回はMarp CLIのダウンロードにネットワーク接続が必要です。
-CIのbuildジョブも同じMarkdownからPDFを生成し、mainへのpushまたは手動実行時にnightly releaseへ含めます。PDF自体はGit管理対象外です。
+Run this command from the repository root to regenerate the submission PDF. The first run needs network access to download Marp CLI. The CI `build` job uses the same Markdown source and includes the PDF in the nightly release on `main` pushes or manual runs. The PDF itself is excluded from Git.
 
 ```sh
 npx --yes @marp-team/marp-cli@4.5.0 --html --pdf docs/architecture-submission.md -o docs/architecture-submission.pdf
 ```
 
-## スライド生成
+## Generate the slides
 
-Node.js と npm がある環境で、リポジトリのルートから実行します。初回は Marp CLI のダウンロードにネットワーク接続が必要です。
-CIではIssue #90案とauth-capture案の両方をPDFに変換し、nightly releaseへ `closing-settlement-slides.pdf` と `auth-capture-slides.pdf` の名前で添付します。
+Run these commands from the repository root with Node.js and npm. The first run needs network access to download Marp CLI. CI renders both slide sets as PDFs and attaches `closing-settlement-slides.pdf` and `auth-capture-slides.pdf` to the nightly release.
 
 ```sh
-# ブラウザーで発表できる HTML
+# HTML for presenting in a browser
 npx --yes @marp-team/marp-cli@4.5.0 --html docs/topics/closing-settlement/slides.md -o docs/topics/closing-settlement/slides.html
 
-# 配布用 PDF（Chrome / Edge / Firefox など対応ブラウザーが必要）
+# PDF for distribution (requires a compatible browser such as Chrome, Edge, or Firefox)
 npx --yes @marp-team/marp-cli@4.5.0 --html docs/topics/closing-settlement/slides.md --pdf -o docs/topics/closing-settlement/slides.pdf
 ```
 
-生成物は Git 管理対象から除外し、Markdown を編集元とします。
+Generated files are excluded from Git; Markdown remains the editable source. To generate the auth-capture version, replace `closing-settlement` with `auth-capture` in the commands. Both versions target 4 minutes 40 seconds of narration plus 20 seconds of slack.
 
-auth-capture案は、同じコマンドのディレクトリ名を `closing-settlement` から `auth-capture` に置き換えて生成します。両案とも説明4分40秒＋予備20秒が目標です。
+## Evidence and citations
 
-## 根拠・引用元の記載方針
+- Link each claim about x402 specifications or Solana implementation status to a primary source. Slides use short source references; speaker scripts identify the relevant specification section or the scope of verification.
+- Distinguish specifications, public code, provider deployment reports, and independently tested results. Label future plans and this project's own designs clearly.
+- Avoid unsupported claims. Pin implementation comparisons to a tag or commit instead of relying only on a moving URL.
+- Each slide's script lists its sources. The end of each script records pinned commits and the limits of verification.
 
-- x402の仕様やSolanaの実装状況を述べる箇所には、主張ごとに一次資料へのリンクを添える。スライドでは短い出典番号・リンク、読み上げ原稿では対応する仕様節や確認範囲を記す。
-- 実装状況は、仕様・公開コード・提供元によるデプロイ報告・自身で検証した結果を区別する。将来構想や本プロジェクトの設計はその旨を明示する。
-- 根拠を確認できない主張は断定しない。実装比較ではタグまたはコミットを固定し、更新されるURLだけで比較対象を定義しない。
-- 原稿の各スライドに対応する出典を記載し、末尾に固定コミット・未検証の範囲をまとめている。
+## Before presenting
 
-## 発表前に更新すること
+- Time the narration and adjust for slide transitions and any live demo to stay within five minutes.
+- Update implemented features, test results, and demo steps to match actual progress.
+- Record demo logs, the commit used, and any Devnet transactions.
+- Verify reference commits and primary sources before including upstream comparisons.
+- Add the presenter name and measured results, and confirm whether the presentation is on October 19 or 21. Clearly label unimplemented ideas as plans.
 
-- 音読を計測し、スライド切替やデモを含めて5分以内に調整する。
-- 実装済み機能、テスト結果、デモ手順を実際の成果に合わせる。
-- デモの実行ログ、使用したコミット、devnet のトランザクションを記録する。
-- upstream との比較を載せる場合は、参照コミットと一次資料を確認する。
-- 発表者名と実測値を追加し、発表日を10月19日または21日のどちらかに確定する。未実装の構想は計画として明示する。
-
-設計の詳細は [ARCHITECTURE.md](ARCHITECTURE.md)、スコープは [ideas.md](ideas.md) を参照してください。
+See [ARCHITECTURE.md](ARCHITECTURE.md) for design details and [ideas.md](ideas.md) for scope.

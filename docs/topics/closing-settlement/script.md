@@ -1,10 +1,10 @@
 # Fall Class — Issue #90 speaker script
 
-英語・5分。独立した7枚の発表案です。Demo Dayは2026年10月19日または21日（未確定、発表者提供）。4方式の実装要件は維持し、説明は#90に絞ります。Issue #83案は採用しません。
+A standalone seven-slide English talk for five minutes. Demo Day is tentatively October 19 or 21, 2026, according to the presenter. The four-scheme implementation goal remains, while this talk focuses on Issue #90. The Issue #83 alternative was dropped.
 
-## 時間配分
+## Timing
 
-| Slide | 内容 | 秒 |
+| Slide | Content | Seconds |
 | --- | --- | --- |
 | 1 | Introduction | 20 |
 | 2 | Context | 35 |
@@ -14,49 +14,49 @@
 | 6 | Validation | 50 |
 | 7 | Progress | 35 |
 
-合計280秒＋予備20秒。音読の実測ではありません。ライブデモ時間は含みません。
+Total: 280 seconds plus 20 seconds of slack. This is an estimate, not a measured reading time, and excludes any live demo.
 
 ## Slide 1 — Introduction
 
 > Hi everyone. This project implements x402 payments on Solana. The repository covers four payment schemes, but this talk focuses on one recovery problem: what happens when a client closes a channel and the payment facilitator is unavailable? That recovery change is still at the design stage.
 
-根拠：[現在のプログラム](../../../programs/anchoring-payment-channels/src/lib.rs)、[私たちの設計・検証計画](ARCHITECTURE.md#design-focus-issue-90-planned)。予定を実装済みの結果として説明しません。
+Basis: [Current program](../../../programs/anchoring-payment-channels/src/lib.rs) and our [design and validation plan](ARCHITECTURE.md#design-focus-issue-90-planned). Do not present planned work as an implemented result.
 
 ## Slide 2 — Context
 
 > In batch settlement, a client signs payment vouchers while an API handles requests. The merchant collects the vouchers and redeems them later. Solana specifications and SDK code already exist, and the Foundation reports its channel program live on mainnet. My focus is an improvement described in upstream issue ninety, rather than a claim that Solana payments do not exist.
 
-出典：[SVM batch-settlement仕様](https://github.com/x402-foundation/x402/blob/cb0ec5bca0a5b21860a36bb60f34433c2e8e0d71/specs/schemes/batch-settlement/scheme_batch_settlement_svm.md)、[SDK](https://github.com/x402-foundation/x402/blob/cb0ec5bca0a5b21860a36bb60f34433c2e8e0d71/typescript/packages/mechanisms/svm/src/batch-settlement/README.md)、[Foundation README](https://github.com/solana-foundation/payment-channels/blob/3ffa4d6728ad88e4a9667a76ad9ccd68a302c696/README.md)。稼働は提供元の報告であり、独立検証ではありません。
+Sources: [SVM batch-settlement specification](https://github.com/x402-foundation/x402/blob/cb0ec5bca0a5b21860a36bb60f34433c2e8e0d71/specs/schemes/batch-settlement/scheme_batch_settlement_svm.md), [SDK](https://github.com/x402-foundation/x402/blob/cb0ec5bca0a5b21860f34433c2e8e0d71/typescript/packages/mechanisms/svm/src/batch-settlement/README.md), and [Foundation README](https://github.com/solana-foundation/payment-channels/blob/3ffa4d6728ad88e4a9667a76ad9ccd68a302c696/README.md). Mainnet operation is the provider's report, not our independent verification.
 
 ## Slide 3 — Actors
 
 > There are three actors. In our current exact and upto demo, the model calls a paid API tool, while application code checks the budget and signs with the client wallet. Batch integration is planned. In the proposed batch flow, the client funds the channel and signs payment vouchers. The gateway provides the API and keeps the latest voucher. The facilitator sponsors transactions and holds the channel payee authority. In this arrangement, that authority belongs to the facilitator, not the merchant receiving the API payment. Our recovery worker will give the merchant a separate submission route, with its own RPC connection and transaction fees.
 
-出典：[#90](https://github.com/solana-foundation/payment-channels/issues/90)、[settleの現行制約](https://github.com/solana-foundation/payment-channels/blob/3ffa4d6728ad88e4a9667a76ad9ccd68a302c696/program/payment_channels/src/instructions/settle.rs)、[settle_and_seal](https://github.com/solana-foundation/payment-channels/blob/3ffa4d6728ad88e4a9667a76ad9ccd68a302c696/program/payment_channels/src/instructions/settle_and_seal.rs)、[送金・終了処理](https://github.com/solana-foundation/payment-channels/blob/3ffa4d6728ad88e4a9667a76ad9ccd68a302c696/README.md#instructions)。直接送信workerと障害デモは[私たちの設計](ARCHITECTURE.md#design-focus-issue-90-planned)です。
+Sources: [Issue #90](https://github.com/solana-foundation/payment-channels/issues/90), [current `settle` state restriction](https://github.com/solana-foundation/payment-channels/blob/3ffa4d6728ad88e4a9667a76ad9ccd68a302c696/program/payment_channels/src/instructions/settle.rs), [`settle_and_seal`](https://github.com/solana-foundation/payment-channels/blob/3ffa4d6728ad88e4a9667a76ad9ccd68a302c696/program/payment_channels/src/instructions/settle_and_seal.rs), and [distribution and closure instructions](https://github.com/solana-foundation/payment-channels/blob/3ffa4d6728ad88e4a9667a76ad9ccd68a302c696/README.md#instructions). The direct-submission worker and outage demo are [our design](ARCHITECTURE.md#design-focus-issue-90-planned).
 
 ## Slide 4 — Problem
 
 > Imagine that the merchant has already served several requests and holds a valid voucher. Before it is settled, the client requests closure. The channel enters Closing and a grace period begins. Normal settlement currently rejects that state. The alternative is cooperative settlement and sealing, which requires the facilitator signature. If the facilitator is offline, the merchant cannot use either route independently. This is the failure scenario we want to reproduce.
 
-出典：[#90](https://github.com/solana-foundation/payment-channels/issues/90)、[settleの現行制約](https://github.com/solana-foundation/payment-channels/blob/3ffa4d6728ad88e4a9667a76ad9ccd68a302c696/program/payment_channels/src/instructions/settle.rs)、[settle_and_seal](https://github.com/solana-foundation/payment-channels/blob/3ffa4d6728ad88e4a9667a76ad9ccd68a302c696/program/payment_channels/src/instructions/settle_and_seal.rs)、[送金・終了処理](https://github.com/solana-foundation/payment-channels/blob/3ffa4d6728ad88e4a9667a76ad9ccd68a302c696/README.md#instructions)。直接送信workerと障害デモは[私たちの設計](ARCHITECTURE.md#design-focus-issue-90-planned)です。
+Sources: [Issue #90](https://github.com/solana-foundation/payment-channels/issues/90), [current `settle` state restriction](https://github.com/solana-foundation/payment-channels/blob/3ffa4d6728ad88e4a9667a76ad9ccd68a302c696/program/payment_channels/src/instructions/settle.rs), [`settle_and_seal`](https://github.com/solana-foundation/payment-channels/blob/3ffa4d6728ad88e4a9667a76ad9ccd68a302c696/program/payment_channels/src/instructions/settle_and_seal.rs), and [distribution and closure instructions](https://github.com/solana-foundation/payment-channels/blob/3ffa4d6728ad88e4a9667a76ad9ccd68a302c696/README.md#instructions). The direct-submission worker and outage demo are [our design](ARCHITECTURE.md#design-focus-issue-90-planned).
 
 ## Slide 5 — Proposed route
 
 > The proposal allows normal settlement during Closing, strictly before the deadline. The merchant submits the saved voucher directly. The program still validates its signature, channel, expiry, and amount. It records the settlement and leaves the channel Closing. This does not transfer tokens or extend the deadline. After the deadline, sealing and distribution complete the payment and refund. If the channel was already sealed, the recovery fails; this is not a guarantee against every race.
 
-出典：[#90](https://github.com/solana-foundation/payment-channels/issues/90)、[settleの現行制約](https://github.com/solana-foundation/payment-channels/blob/3ffa4d6728ad88e4a9667a76ad9ccd68a302c696/program/payment_channels/src/instructions/settle.rs)、[settle_and_seal](https://github.com/solana-foundation/payment-channels/blob/3ffa4d6728ad88e4a9667a76ad9ccd68a302c696/program/payment_channels/src/instructions/settle_and_seal.rs)、[送金・終了処理](https://github.com/solana-foundation/payment-channels/blob/3ffa4d6728ad88e4a9667a76ad9ccd68a302c696/README.md#instructions)。直接送信workerと障害デモは[私たちの設計](ARCHITECTURE.md#design-focus-issue-90-planned)です。
+Sources: [Issue #90](https://github.com/solana-foundation/payment-channels/issues/90), [current `settle` state restriction](https://github.com/solana-foundation/payment-channels/blob/3ffa4d6728ad88e4a9667a76ad9ccd68a302c696/program/payment_channels/src/instructions/settle.rs), [`settle_and_seal`](https://github.com/solana-foundation/payment-channels/blob/3ffa4d6728ad88e4a9667a76ad9ccd68a302c696/program/payment_channels/src/instructions/settle_and_seal.rs), and [distribution and closure instructions](https://github.com/solana-foundation/payment-channels/blob/3ffa4d6728ad88e4a9667a76ad9ccd68a302c696/README.md#instructions). The direct-submission worker and outage demo are [our design](ARCHITECTURE.md#design-focus-issue-90-planned).
 
 ## Slide 6 — Validation
 
 > I will compare baseline and modified behavior using the same outage scenario. The tests will check the instant before the deadline, the deadline itself, and the time afterward. Invalid signatures, excessive amounts, and duplicate vouchers must still fail. Settlement should only update state; distribution should pay once and return the unused balance. I also want to test restarts and unknown transaction outcomes, so a timeout does not accidentally cause an unsafe retry.
 
-根拠：[現在のプログラム](../../../programs/anchoring-payment-channels/src/lib.rs)、[私たちの設計・検証計画](ARCHITECTURE.md#design-focus-issue-90-planned)。予定を実装済みの結果として説明しません。
+Basis: [Current program](../../../programs/anchoring-payment-channels/src/lib.rs) and our [design and validation plan](ARCHITECTURE.md#design-focus-issue-90-planned). Do not present planned work as an implemented result.
 
 ## Slide 7 — Progress
 
 > Today the repository contains a single-request Anchor escrow prototype for upto. Next I will reproduce the batch channel lifecycle, implement the changed state gate, and compare the results. All four payment schemes remain in the repository scope. This presentation focuses on reducing facilitator dependence during the Closing grace period. Thank you.
 
-根拠：[現在のプログラム](../../../programs/anchoring-payment-channels/src/lib.rs)、[私たちの設計・検証計画](ARCHITECTURE.md#design-focus-issue-90-planned)。予定を実装済みの結果として説明しません。
+Basis: [Current program](../../../programs/anchoring-payment-channels/src/lib.rs) and our [design and validation plan](ARCHITECTURE.md#design-focus-issue-90-planned). Do not present planned work as an implemented result.
 
 ## Optional demo architecture appendix — outside the timed talk
 
@@ -66,14 +66,14 @@ The agent calls the gateway's paid API. The gateway returns the x402 quote, rece
 
 The app, not the model, holds the local Solana signing key. The model calls a paid API tool; application code checks the budget and signs. The official FAQ lists Base and Solana, while this demo uses Solana Devnet USDC. A separate local facilitator verifies and submits payments. Fiat conversion and card deposits are outside x402's native scope and outside this demo. Sources: [x402 FAQ](https://docs.x402.org/faq), [facilitator](https://docs.x402.org/core-concepts/facilitator), [demo tools](../../../examples/client/src/payment-tools.ts).
 
-## 根拠と確認範囲
+## Evidence and scope of verification
 
-- payment-channels参照コミット：`3ffa4d6728ad88e4a9667a76ad9ccd68a302c696`。x402：`cb0ec5bca0a5b21860a36bb60f34433c2e8e0d71`。Issueは可変なので、実装・発表前に関連PRとともに再確認します。
-- [公式README](https://github.com/solana-foundation/payment-channels/blob/3ffa4d6728ad88e4a9667a76ad9ccd68a302c696/README.md)のmainnet稼働報告は、完成・安定性や全facilitatorの対応の証明ではありません。同READMEのv2拡張は未実装の提案と記載されています。payment channel v2とx402 v2は別です。
-- #90は通常のsettleを許す状態の変更です。新しいvoucher形式や暗号方式を作る課題ではありません。追加実装が比較的小さいという難易度評価は私たちの判断で、チャネル基盤全体の実装が容易という意味ではありません。
-- #90は既にSealedになった状態や早期の協調終了を救済しません。オンチェーンでの署名・時刻検証を維持し、settleとdistributeを混同しません。
-- #83には[修正PR #84](https://github.com/solana-foundation/payment-channels/pull/84)が存在し、確認時点ではOpen・未マージでした（head `25df9636698c320a0716ba224cbc8724acf63edf`）。ユーザー方針により発表候補から除外しています。
+- Pinned payment-channels commit: `3ffa4d6728ad88e4a9667a76ad9ccd68a302c696`; x402 commit: `cb0ec5bca0a5b21860a36bb60f34433c2e8e0d71`. Issues can change, so recheck them and related PRs before implementation or presentation.
+- The [official README](https://github.com/solana-foundation/payment-channels/blob/3ffa4d6728ad88e4a9667a76ad9ccd68a302c696/README.md) reports mainnet operation; this does not prove completeness, stability, or support by every facilitator. Its v2 extensions are described as unimplemented proposals. Payment channel v2 and x402 v2 are separate things.
+- Issue #90 changes the states in which ordinary `settle` is allowed. It does not introduce a new voucher format or cryptography. The estimate that this addition is relatively small is our judgment; it does not mean the full channel system is easy to implement.
+- Issue #90 cannot recover an already Sealed channel or an early cooperative closure. Keep signature and deadline validation on chain, and distinguish `settle` from `distribute`.
+- Issue #83 has [fix PR #84](https://github.com/solana-foundation/payment-channels/pull/84), which was open and unmerged when checked (head `25df9636698c320a0716ba224cbc8724acf63edf`). It was removed from the presentation candidates by project decision.
 
-## 発表前の確認
+## Before presenting
 
-音読し、5分以内に調整します。実装後にテスト結果・実行ログ・参照コミットを更新し、予定と観測結果を分けます。実験用Anchorプログラムは独立したデプロイであり、公式canonicalプログラムを変更したとは説明しません。
+Read the script aloud and adjust it to fit five minutes. After implementation, update test results, execution logs, and reference commits, distinguishing plans from observations. The experimental Anchor program is a separate deployment; do not suggest that it changes the official canonical program.

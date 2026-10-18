@@ -1,25 +1,25 @@
-# デモの支払いアーキテクチャ
+# Demo payment architecture
 
-この文書は現在の `exact` と、このリポジトリの Anchor プログラムを使う `upto` ルートを説明するデモ用資料です。計画段階の `batch-settlement` と `auth-capture` の構成は [全体アーキテクチャ](ARCHITECTURE.md)を参照してください。
+This document describes the current `exact` route and the `upto` route backed by this repository's Anchor program. See the [overall architecture](ARCHITECTURE.md) for the planned `batch-settlement` and `auth-capture` designs.
 
-## 誰が誰と通信するか
+## Who communicates with whom
 
 ```mermaid
 flowchart LR
-    A["AI agent / payment client<br/>API を選び、条件と予算を確認して署名"]
-    G["Gateway / paid API<br/>402 と有料データを返す"]
-    F["Facilitator<br/>支払いを検証し、取引を送信"]
-    S["Solana Devnet<br/>トークンとプログラムの状態"]
-    A <-->|"GET、402、PAYMENT-SIGNATURE、API 応答"| G
-    G <-->|"/supported、/verify、/settle"| F
-    F <-->|"RPC: 状態確認、シミュレーション、送信"| S
+    A["AI agent / payment client<br/>Selects the API, checks terms and budget, then signs"]
+    G["Gateway / paid API<br/>Returns 402 and paid data"]
+    F["Facilitator<br/>Verifies payment and submits transactions"]
+    S["Solana Devnet<br/>Token and program state"]
+    A <-->|"GET, 402, PAYMENT-SIGNATURE, API response"| G
+    G <-->|"/supported, /verify, /settle"| F
+    F <-->|"RPC: state checks, simulation, submission"| S
 ```
 
-支払い先の API URL は client が持ち、facilitator URL は gateway が `GATEWAY_FACILITATOR_URL` として持ちます。client は facilitator に直接 HTTP リクエストを送りません。gateway は x402 の `paymentMiddleware` と `x402ResourceServer` を使い、facilitator へ検証と精算を委ねます。facilitator は受取人でも購入者でもありません。取引の送信やネットワーク手数料の負担を担当しても、client と merchant の署名権限を代行するわけではありません。
+The client has the paid API URL; the gateway has the facilitator URL in `GATEWAY_FACILITATOR_URL`. The client does not send HTTP requests directly to the facilitator. The gateway uses x402's `paymentMiddleware` and `x402ResourceServer` to delegate verification and settlement to the facilitator. The facilitator is neither the recipient nor the buyer. Submitting transactions and paying network fees does not give it the client's or merchant's signing authority.
 
-現行の起動設定では facilitator URL の既定値はローカルの `http://127.0.0.1:4022` です。デモでは `exact` と `upto` のどちらもこのリポジトリのローカル facilitator を使います。
+The default facilitator URL is the local `http://127.0.0.1:4022`. Both the `exact` and `upto` demos use this repository's local facilitator.
 
-## `exact`: 支払いを確認してから応答する
+## `exact`: Confirm payment before responding
 
 ```mermaid
 sequenceDiagram
@@ -28,50 +28,50 @@ sequenceDiagram
     participant F as Facilitator
     participant S as Solana Devnet
     C->>G: GET /api/trump-insider
-    G-->>C: 402 PAYMENT-REQUIRED (exact、価格、受取先)
-    Note over C: ネットワーク・資産・受取先・金額・予算を確認
-    C->>C: 支払いペイロードに署名
+    G-->>C: 402 PAYMENT-REQUIRED (exact, price, recipient)
+    Note over C: Check network, asset, recipient, amount, and budget
+    C->>C: Sign payment payload
     C->>G: GET + PAYMENT-SIGNATURE
     G->>F: POST /verify
-    F-->>G: 有効な支払い承認
-    G->>G: 有料 API の結果を生成
+    F-->>G: Valid payment authorization
+    G->>G: Generate paid API result
     G->>F: POST /settle
-    F->>S: 署名済み取引を送信し、確認
-    S-->>F: 確認結果
-    F-->>G: 精算結果
-    G-->>C: 200 + 有料 JSON + PAYMENT-RESPONSE
-    Note over C: 精算結果を確認し、API の内容から回答
+    F->>S: Submit signed transaction and confirm
+    S-->>F: Confirmation result
+    F-->>G: Settlement result
+    G-->>C: 200 + paid JSON + PAYMENT-RESPONSE
+    Note over C: Verify settlement and answer from API content
 ```
 
-`exact` では、このリポジトリの Anchor プログラムは呼びません。gateway の有料リソースは創作のパロディ JSON を返します。
+The `exact` route does not call this repository's Anchor program. The gateway's paid resource returns fictional parody JSON.
 
-## `upto`: 上限を先に預け、実額で精算する
+## `upto`: Deposit the ceiling, then settle the actual charge
 
 ```mermaid
 sequenceDiagram
     participant C as AI agent / client
     participant G as Gateway / paid API
     participant F as Local facilitator
-    participant S as このリポジトリの Anchor program
+    participant S as This repository's Anchor program
     C->>G: GET /api/trump-insider/upto
-    G-->>C: 402 PAYMENT-REQUIRED (upto、上限 1000)
-    Note over C: 条件と予算を確認し、上限分の open に署名
+    G-->>C: 402 PAYMENT-REQUIRED (upto, ceiling 1000)
+    Note over C: Check terms and budget; sign open for the ceiling
     C->>G: GET + PAYMENT-SIGNATURE
-    G->>F: POST /settle (預け入れ)
-    F->>S: open を送信し、確認
-    S-->>F: 預け入れ確認
-    F-->>G: 預け入れ結果
-    G->>G: API を実行し、実額 300 を指定
-    G->>F: POST /settle (実額の精算)
-    F->>S: settle を送信し、確認
-    S-->>F: 精算と未使用分返却を確認
-    F-->>G: 精算結果
-    G-->>C: 200 + 有料 JSON + PAYMENT-RESPONSE (実額 300)
+    G->>F: POST /settle (deposit)
+    F->>S: Submit open and confirm
+    S-->>F: Deposit confirmation
+    F-->>G: Deposit result
+    G->>G: Run API and set actual charge to 300
+    G->>F: POST /settle (actual charge)
+    F->>S: Submit settle and confirm
+    S-->>F: Confirm settlement and return of unused funds
+    F-->>G: Settlement result
+    G-->>C: 200 + paid JSON + PAYMENT-RESPONSE (actual charge 300)
 ```
 
-`upto` の 1000 と 300 は USDC の最小単位です。300 はデモ用の固定値で、実測した利用量ではありません。402 応答では `scheme: "upto"` を広告し、client、gateway、facilitator がこのリポジトリの Anchor プログラムの `open` と `settle` を使います。公式 SVM `upto` 仕様は別の固定プログラム ID と命令形式を定めているため、この Solana ペイロードは公式バインディングと相互運用できません。
+The `upto` amounts 1000 and 300 are atomic USDC units. The charge of 300 is a fixed demo value, not measured usage. The 402 response advertises `scheme: "upto"`; the client, gateway, and facilitator use this repository's Anchor `open` and `settle` instructions. The official SVM `upto` specification uses a different fixed program ID and instruction format, so this Solana payload is not interoperable with that binding.
 
-### `upto` のアカウント関係（実装済み）
+### Implemented `upto` account relationships
 
 ```mermaid
 erDiagram
@@ -103,12 +103,12 @@ erDiagram
     }
 ```
 
-`PaymentChannel` はこのリポジトリの Anchor プログラムが所有する PDA で、シードは `"channel"`、payer、merchant、mint、nonce（リトルエンディアンの `u64`）です。vault は Token Program が所有する、この PDA を authority とする関連トークン口座です。`open` で payer のトークン口座から上限額を預けます。`settle` では merchant の署名を要し、vault から merchant のトークン口座へ実額、payer のトークン口座へ残額を送ります。期限後の `refund` は payer の署名で vault の全額を payer のトークン口座へ戻します。どちらの終了経路でも vault と `PaymentChannel` を閉じ、口座 rent を `rent_payer` に返します。
+`PaymentChannel` is a PDA owned by this repository's Anchor program. Its seeds are `"channel"`, payer, merchant, mint, and nonce (a little-endian `u64`). The vault is an associated token account owned by the Token Program, with the PDA as its authority. `open` deposits the ceiling from the payer's token account. `settle` requires the merchant's signature, sends the actual charge from the vault to the merchant's token account, and returns the remainder to the payer's token account. After expiry, `refund` requires the payer's signature and returns the entire vault balance to the payer's token account. Both exit paths close the vault and `PaymentChannel`, returning account rent to `rent_payer`.
 
-payer と merchant のトークン口座アドレスは `PaymentChannel` に保存しません。各命令が渡された口座の mint と token authority を検証します。図の `PAYER_TOKEN_ACCOUNT` と `MERCHANT_TOKEN_ACCOUNT` はその口座種別であり、チャネルごとに新設する状態口座ではありません。
+The payer and merchant token account addresses are not stored in `PaymentChannel`. Each instruction validates the mint and token authority of the accounts it receives. `PAYER_TOKEN_ACCOUNT` and `MERCHANT_TOKEN_ACCOUNT` in the diagram represent account types, not new state accounts created for each channel.
 
-預け入れ後に `settle` が実行されず期限が過ぎた場合、payer は [返金 CLI](../examples/client/README.md#recover-an-expired-upto-deposit) から RPC に直接 `refund` を送れます。gateway と facilitator は不要ですが、payer の署名と取引手数料用の SOL が必要です。
+If `settle` does not run before the deposit expires, the payer can submit `refund` directly to RPC with the [refund CLI](../examples/client/README.md#recover-an-expired-upto-deposit). The gateway and facilitator are not required, but the payer needs a signature and SOL for transaction fees.
 
-いずれのルートも、支払い結果が不明な場合は client が次の支払いを止めます。署名したリクエストを無条件に繰り返す構成ではありません。現在の HTTP 結合テストは模擬 RPC、Anchor の状態遷移テストは LiteSVM を使っており、Devnet 上の実送金成功までは証明していません。
+On either route, the client stops further payments when the outcome is unknown. It does not retry signed requests unconditionally. Current HTTP integration tests use a mock RPC, and Anchor state transition tests use LiteSVM. They do not establish successful live Devnet transfers.
 
-実装と実行方法: [client](../examples/client/README.md)、[gateway と local facilitator](../examples/gateway/README.md)。フローの根拠: [x402 v2 支払いフロー](https://github.com/x402-foundation/x402/blob/main/specs/x402-specification-v2.md#61-asset-transfer-methods-and-payment-flow-models)。
+Implementation and run instructions: [client](../examples/client/README.md), [gateway and local facilitator](../examples/gateway/README.md). Flow reference: [x402 v2 payment flows](https://github.com/x402-foundation/x402/blob/main/specs/x402-specification-v2.md#61-asset-transfer-methods-and-payment-flow-models).
