@@ -5,14 +5,14 @@ This document describes the current `exact` route and the `upto` route backed by
 ## Who communicates with whom
 
 ```mermaid
-flowchart LR
-    A["AI agent / payment client<br/>Selects the API, checks terms and budget, then signs"]
-    G["Gateway / paid API<br/>Returns 402 and paid data"]
-    F["Facilitator<br/>Verifies payment and submits transactions"]
-    S["Solana Devnet<br/>Token and program state"]
-    A <-->|"GET, 402, PAYMENT-SIGNATURE, API response"| G
-    G <-->|"/supported, /verify, /settle"| F
-    F <-->|"RPC: state checks, simulation, submission"| S
+flowchart TB
+    A["AI agent / client<br/>Checks terms and signs"]
+    G["Gateway / paid API<br/>Quotes and serves"]
+    F["Facilitator<br/>Verifies and submits"]
+    S["Solana Devnet<br/>Payment state"]
+    A <-->|"HTTP 402 + payment"| G
+    G <-->|"verify / settle"| F
+    F <-->|"Solana RPC"| S
 ```
 
 The client has the paid API URL; the gateway has the facilitator URL in `GATEWAY_FACILITATOR_URL`. The client does not send HTTP requests directly to the facilitator. The gateway uses x402's `paymentMiddleware` and `x402ResourceServer` to delegate verification and settlement to the facilitator. The facilitator is neither the recipient nor the buyer. Submitting transactions and paying network fees does not give it the client's or merchant's signing authority.
