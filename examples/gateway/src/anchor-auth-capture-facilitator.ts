@@ -11,7 +11,8 @@ import { validateSignedTransaction } from "./anchor-upto-facilitator.js";
 type AuthPayload = {
   payer: string; nonce: bigint; captureDeadline: bigint; refundDeadline: bigint;
   paymentId: string; authorizeTransaction: string;
-  type?: "authorize" | "capture"; captureTransaction?: string;
+  type?: "authorize" | "capture" | "void";
+  captureTransaction?: string; voidTransaction?: string;
 };
 
 function parsePayload(payload: PaymentPayload): AuthPayload {
@@ -20,7 +21,7 @@ function parsePayload(payload: PaymentPayload): AuthPayload {
       typeof raw.captureDeadline !== "string" || !/^\d+$/.test(raw.captureDeadline) ||
       typeof raw.refundDeadline !== "string" || !/^\d+$/.test(raw.refundDeadline) ||
       typeof raw.paymentId !== "string" || typeof raw.authorizeTransaction !== "string" ||
-      (raw.type !== undefined && raw.type !== "authorize" && raw.type !== "capture")) {
+      (raw.type !== undefined && raw.type !== "authorize" && raw.type !== "capture" && raw.type !== "void")) {
     throw new Error("Invalid Anchor auth-capture payload");
   }
   return {
@@ -29,6 +30,7 @@ function parsePayload(payload: PaymentPayload): AuthPayload {
     paymentId: raw.paymentId, authorizeTransaction: raw.authorizeTransaction,
     type: raw.type,
     captureTransaction: typeof raw.captureTransaction === "string" ? raw.captureTransaction : undefined,
+    voidTransaction: typeof raw.voidTransaction === "string" ? raw.voidTransaction : undefined,
   };
 }
 
@@ -98,21 +100,24 @@ export class AnchorAuthCaptureFacilitatorScheme implements SchemeNetworkFacilita
     let wire: string;
     let amount: string;
     if (raw.type === "authorize") {
-      if (requirements.amount !== "1000" || raw.captureTransaction) throw new Error("Invalid auth-capture authorization");
+      if (requirements.amount !== "1000" || raw.captureTransaction || raw.voidTransaction) throw new Error("Invalid auth-capture authorization");
       const verified = await this.verify(payload, requirements);
       if (!verified.isValid) throw new Error("Invalid auth-capture payer signature");
       wire = raw.authorizeTransaction;
       amount = "0";
-    } else if (raw.type === "capture" && raw.captureTransaction) {
+    } else if ((raw.type === "capture" && raw.captureTransaction && !raw.voidTransaction) ||
+               (raw.type === "void" && raw.voidTransaction && !raw.captureTransaction)) {
+      if (raw.type === "void" && requirements.amount !== "0") throw new Error("Void must return the full hold");
       const { instruction, payment } = await holdOperationInstruction({
         authority: createNoopSigner(address(this.merchant)), payer: raw.payer,
         merchant: this.merchant, mint: requirements.asset, nonce: raw.nonce,
-        type: "capture_and_void_hold", sequence: 0n, amount: BigInt(requirements.amount),
+        type: raw.type === "void" ? "void_hold" : "capture_and_void_hold",
+        sequence: 0n, amount: raw.type === "void" ? undefined : BigInt(requirements.amount),
       });
       if (payment !== raw.paymentId) throw new Error("Wrong auth-capture payment address");
-      await validateSignedTransaction(raw.captureTransaction, instruction, feePayer, this.merchant);
-      await this.signer.simulateTransaction(raw.captureTransaction, DEVNET);
-      wire = raw.captureTransaction;
+      wire = raw.type === "void" ? raw.voidTransaction! : raw.captureTransaction!;
+      await validateSignedTransaction(wire, instruction, feePayer, this.merchant);
+      await this.signer.simulateTransaction(wire, DEVNET);
       amount = requirements.amount;
     } else throw new Error("Invalid auth-capture settlement phase");
     const signed = await this.signer.signTransaction(wire, address(feePayer), DEVNET);

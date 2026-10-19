@@ -94,7 +94,7 @@ Token arrows describe validated program operations, not arbitrary transfers. `vo
 
 ## Escrow request and lifecycle flow
 
-The HTTP layer uses the [x402 v2 transport](https://github.com/x402-foundation/x402/blob/cb0ec5bca0a5b21860a36bb60f34433c2e8e0d71/specs/transports-v2/http.md). The first facilitator `/settle` establishes the hold; a second `/settle` captures the charge and releases the remainder after the handler. Later refund, capture, void, and payer reclaim use the direct operation CLI, outside HTTP `/settle`. The concrete Solana transaction format is our project-specific binding.
+The HTTP layer uses the [x402 v2 transport](https://github.com/x402-foundation/x402/blob/cb0ec5bca0a5b21860a36bb60f34433c2e8e0d71/specs/transports-v2/http.md). The first facilitator `/settle` establishes the hold; a second `/settle` captures the charge and releases the remainder after the handler. If the handler is canceled, the second `/settle` names `void` and submits a merchant-signed `void_hold`. Later refund, capture, void, and payer reclaim use the direct operation CLI, outside HTTP `/settle`. The concrete Solana transaction format is our project-specific binding.
 
 ```mermaid
 sequenceDiagram

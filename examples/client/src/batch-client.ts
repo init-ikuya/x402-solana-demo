@@ -97,7 +97,7 @@ export class BatchPaymentClient {
     if (limits.maxAmount <= 0n) throw new Error("maxAmount must be positive");
     let response = await fetchImpl(target);
     if (response.status !== 402) throw new Error(`Expected HTTP 402, received ${response.status}`);
-    let quoted = false;
+    let reservedAmount: bigint | undefined;
     let submitted = false;
     for (let attempt = 0; attempt < 2; attempt++) {
       let required: PaymentRequired;
@@ -107,7 +107,13 @@ export class BatchPaymentClient {
         new URL(required.resource.url, target).href !== target.href) throw new Error("Invalid batch payment requirements");
       const accepted = required.accepts.find(value => acceptable(value, limits));
       if (!accepted) throw new Error("No acceptable batch-settlement requirement");
-      if (!quoted) { options.onQuoteAccepted?.(BigInt(accepted.amount)); quoted = true; }
+      const quotedAmount = BigInt(accepted.amount);
+      if (reservedAmount === undefined) {
+        options.onQuoteAccepted?.(quotedAmount);
+        reservedAmount = quotedAmount;
+      } else if (quotedAmount > reservedAmount) {
+        throw new Error("Corrective batch quote exceeds the reserved payment ceiling");
+      }
       const payload = await this.http.createPaymentPayload({ ...required, accepts: [accepted] });
       if (!submitted) { options.onBeforePaidRequest?.(); submitted = true; }
       response = await fetchImpl(target, { headers: this.http.encodePaymentSignatureHeader(payload) });

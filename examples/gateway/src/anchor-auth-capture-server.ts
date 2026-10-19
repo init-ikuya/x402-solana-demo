@@ -50,14 +50,16 @@ export class AnchorAuthCaptureServerScheme implements SchemeNetworkServer {
     const raw = ctx.paymentPayload.payload;
     if (typeof raw.payer !== "string" || typeof raw.nonce !== "string" || !/^\d+$/.test(raw.nonce) ||
         typeof ctx.requirements.extra.feePayer !== "string") throw new Error("Invalid auth-capture payload");
+    const voidHold = ctx.phase === "cancel" || ctx.requirements.amount === "0";
     const { instruction } = await holdOperationInstruction({
       authority: this.merchant, payer: raw.payer, merchant: this.merchant.address,
       mint: ctx.requirements.asset, nonce: BigInt(raw.nonce),
-      type: "capture_and_void_hold", sequence: 0n, amount: BigInt(ctx.requirements.amount),
+      type: voidHold ? "void_hold" : "capture_and_void_hold",
+      sequence: 0n, amount: voidHold ? undefined : BigInt(ctx.requirements.amount),
     });
-    return { type: "capture", captureTransaction: await signedTransaction(
-      instruction, ctx.requirements.extra.feePayer, this.rpcUrl,
-    ) };
+    const transaction = await signedTransaction(instruction, ctx.requirements.extra.feePayer, this.rpcUrl);
+    return voidHold ? { type: "void", voidTransaction: transaction }
+      : { type: "capture", captureTransaction: transaction };
   };
 
   settleOnCancel(ctx: VerifiedPaymentCanceledContext): PaymentRequirements {

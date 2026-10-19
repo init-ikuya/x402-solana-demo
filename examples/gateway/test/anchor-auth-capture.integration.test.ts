@@ -7,15 +7,17 @@ import {
   getTransactionDecoder,
 } from "@solana/kit";
 import { x402Facilitator } from "@x402/core/facilitator";
+import type { PaymentPayload, PaymentRequirements } from "@x402/core/types";
 import { ExactSvmScheme } from "@x402/svm/exact/facilitator";
 import { toFacilitatorSvmSigner } from "@x402/svm";
 import { createApp } from "../src/app.js";
 import { createFacilitatorApp } from "../src/facilitator.js";
 import { AnchorAuthCaptureFacilitatorScheme } from "../src/anchor-auth-capture-facilitator.js";
+import { AnchorAuthCaptureServerScheme } from "../src/anchor-auth-capture-server.js";
 import { AUTH_CAPTURE_RESOURCE_PATH } from "../src/demo-resource.js";
 import { DEVNET, DEVNET_USDC } from "../src/constants.js";
 import { assertDemoResource } from "./demo-resource-assert.js";
-import { AUTH_CAPTURE_PROGRAM } from "../../shared/anchor-auth-capture.js";
+import { AUTH_CAPTURE_BINDING, AUTH_CAPTURE_PROGRAM, paymentAddress } from "../../shared/anchor-auth-capture.js";
 import { instructionDiscriminator } from "../../shared/anchor-upto.js";
 import { AgentPaymentSession } from "../../client/src/agent-payment-session.js";
 
@@ -26,14 +28,16 @@ let rpcUrl: string;
 let gatewayUrl: string;
 let payTo: string;
 let client: Awaited<ReturnType<typeof generateKeyPairSigner>>;
+let merchant: Awaited<ReturnType<typeof generateKeyPairSigner>>;
+let sponsor: Awaited<ReturnType<typeof generateKeyPairSigner>>;
 const submitted: string[] = [];
 let confirmations = 0;
 let simulations = 0;
 
 before(async () => {
   client = await generateKeyPairSigner();
-  const merchant = await generateKeyPairSigner();
-  const sponsor = await generateKeyPairSigner();
+  merchant = await generateKeyPairSigner();
+  sponsor = await generateKeyPairSigner();
   payTo = merchant.address;
   rpcServer = createServer(async (request, response) => {
     const chunks: Buffer[] = [];
@@ -82,12 +86,53 @@ before(async () => {
   gatewayUrl = `http://127.0.0.1:${(gatewayServer.address() as AddressInfo).port}`;
 });
 
+test("canceled escrow is named void and verifies a merchant-signed void instruction", async () => {
+  submitted.length = 0;
+  confirmations = 0;
+  simulations = 0;
+  const now = Math.floor(Date.now() / 1000);
+  const extra = {
+    binding: AUTH_CAPTURE_BINDING, programId: AUTH_CAPTURE_PROGRAM,
+    feePayer: sponsor.address, assetTransferMethod: "escrow", paymentFlow: "escrow",
+    captureDeadline: String(now + 120), refundDeadline: String(now + 240),
+  };
+  const accepted: PaymentRequirements = {
+    scheme: "auth-capture", network: DEVNET, asset: DEVNET_USDC,
+    payTo, amount: "1000", maxTimeoutSeconds: 300, extra,
+  };
+  const requirements = { ...accepted, amount: "0" };
+  const paymentId = await paymentAddress(client.address, 1n);
+  const payload: PaymentPayload = { x402Version: 2, accepted, payload: {
+    payer: client.address, nonce: "1", paymentId,
+    captureDeadline: extra.captureDeadline, refundDeadline: extra.refundDeadline,
+    authorizeTransaction: "unused",
+  } };
+  const serverScheme = new AnchorAuthCaptureServerScheme(merchant, rpcUrl);
+  const enrichment = await serverScheme.enrichSettlementPayload!({
+    phase: "cancel", paymentPayload: payload, requirements,
+  } as unknown as Parameters<NonNullable<typeof serverScheme.enrichSettlementPayload>>[0]);
+  assert.equal(enrichment?.type, "void");
+  assert.equal(typeof enrichment?.voidTransaction, "string");
+  const facilitatorScheme = new AnchorAuthCaptureFacilitatorScheme(
+    toFacilitatorSvmSigner(sponsor, { defaultRpcUrl: rpcUrl }), payTo,
+  );
+  const result = await facilitatorScheme.settle({ ...payload, payload: { ...payload.payload, ...enrichment } }, requirements);
+  assert.equal(result.success, true);
+  assert.equal(result.amount, "0");
+  const tx = getTransactionDecoder().decode(Buffer.from(submitted.at(-1)!, "base64"));
+  const instruction = decompileTransactionMessage(getCompiledTransactionMessageDecoder().decode(tx.messageBytes)).instructions[0];
+  assert.deepEqual(instruction.data?.slice(0, 8), instructionDiscriminator("void_hold"));
+});
+
 after(async () => {
   await Promise.all([rpcServer, facilitatorServer, gatewayServer].map(server =>
     new Promise<void>(resolve => server?.close(() => resolve()))));
 });
 
 test("auth-capture sends signed authorize and capture-and-void through the facilitator", async () => {
+  submitted.length = 0;
+  confirmations = 0;
+  simulations = 0;
   const url = `${gatewayUrl}${AUTH_CAPTURE_RESOURCE_PATH}`;
   const challenge = await fetch(url);
   assert.equal(challenge.status, 402);
