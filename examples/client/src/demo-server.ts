@@ -84,6 +84,10 @@ const server = createServer((request, response) => {
       response.writeHead(400).end("Configure GATEWAY_PAY_TO and the payer key in examples/client/.env");
       return;
     }
+    if ((process.env.AGENT_MODEL_PROVIDER ?? "lm-studio") === "lm-studio" && !process.env.LM_STUDIO_MODEL) {
+      response.writeHead(400).end("Configure LM_STUDIO_MODEL with a loaded LM Studio model ID");
+      return;
+    }
     started = true;
     response.writeHead(202, { "Content-Type": "application/json" }).end('{"started":true}');
     publish({ kind: "start" });
@@ -94,6 +98,7 @@ const server = createServer((request, response) => {
         env: {
           ...process.env,
           AGENT_SCHEMES: "auth-capture",
+          AGENT_MODEL_PROVIDER: process.env.AGENT_MODEL_PROVIDER ?? "lm-studio",
           AGENT_MAX_PAYMENTS: "1",
           AGENT_MAX_TOTAL_AMOUNT: "1000",
           PAYMENT_DEMO_TRACE: "1",

@@ -1,6 +1,6 @@
 # x402 payment client
 
-This package contains the paying CLI, `exact`, repository-backed `upto`, official SVM `batch-settlement`, and experimental escrow-only `auth-capture` adapters, a per-process spending budget, and a model-driven payment agent. The CLI remains available for deterministic checks. See the [local LLM agent guide](AGENT.md) for Ollama setup and tool calling. The gateway and local facilitator are in [examples/gateway](../gateway/README.md), which documents the payment flows and local setup.
+This package contains the paying CLI, `exact`, repository-backed `upto`, official SVM `batch-settlement`, and experimental escrow-only `auth-capture` adapters, a per-process spending budget, and a model-driven payment agent. The CLI remains available for deterministic checks. See the [local LLM agent guide](AGENT.md) for LM Studio or Ollama setup and tool calling. The gateway and local facilitator are in [examples/gateway](../gateway/README.md), which documents the payment flows and local setup.
 
 The [demo payment architecture](../../docs/demo-payment-architecture.md) shows how this client, the gateway, and the facilitator communicate.
 

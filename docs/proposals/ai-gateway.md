@@ -66,10 +66,10 @@ This is the initial proposal, not a description of the current implementation. S
 
 ### Off chain: TypeScript gateway and AI agent
 
-The examples live under `examples/` in this repository. `examples/gateway/` is the service-side reference implementation and demo server; `examples/client/` contains the payment CLI and LLM agent. The core payment program does not depend on these examples or an AI provider. Both projects are npm workspaces and can be run from the repository root. Local Ollama tool calling is implemented, but a demo with a live model has not been verified.
+The examples live under `examples/` in this repository. `examples/gateway/` is the service-side reference implementation and demo server; `examples/client/` contains the payment CLI and LLM agent. The core payment program does not depend on these examples or an AI provider. Both projects are npm workspaces and can be run from the repository root. Local LM Studio and Ollama tool calling are implemented, but a demo with a live model has not been verified.
 
 - **Gateway**: TypeScript HTTP server for 402 responses, off-chain voucher verification, AI API calls such as Claude, and on-chain settlement. Confirm the x402 specification version and message format before implementing any new route.
-- **AI agent**: TypeScript tool loop in which the LLM selects a paid API and uses its result in an answer, with a replaceable model connection. The current adapter uses Ollama's `/api/chat`.
+- **AI agent**: TypeScript tool loop in which the LLM selects a paid API and uses its result in an answer, with a replaceable model connection. The browser demo defaults to LM Studio's OpenAI-compatible `/v1/chat/completions`; Ollama's `/api/chat` remains selectable.
 - **Payment tool**: On a 402 response, create and sign a voucher within the configured budget, then retry. The application manages the private key and never exposes it in model prompts or tool results.
 - **Program client**: Start with Anchor's TypeScript client and IDL. Consider Codama if a generated client becomes necessary.
 - **Demo deployment**: Run gateway and agent locally against a Devnet program. Public hosting and MCP support were optional extensions.

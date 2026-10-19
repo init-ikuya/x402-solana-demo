@@ -5,6 +5,7 @@ import { paidReportEvidence, reviewDemoAnswer } from "./demo-answer.js";
 import { createDemoHttpTrace } from "./demo-http-trace.js";
 import { loadKeypair } from "./keypair.js";
 import { OllamaChatModel } from "./ollama-model.js";
+import { LmStudioChatModel } from "./lm-studio-model.js";
 import { createPaymentTools, type PaymentScheme } from "./payment-tools.js";
 import { BatchPaymentClient, FileBatchClientStorage } from "./batch-client.js";
 
@@ -42,10 +43,13 @@ const batchClient = schemes.includes("batch-settlement") ? new BatchPaymentClien
   new FileBatchClientStorage(process.env.BATCH_CLIENT_STORE_FILE ?? ".batch-client-channels.json"),
   batchDepositAmount,
 ) : undefined;
-const model = new OllamaChatModel({
-  model: process.env.OLLAMA_MODEL ?? "qwen3",
-  baseUrl: process.env.OLLAMA_BASE_URL,
-});
+const provider = process.env.AGENT_MODEL_PROVIDER ?? "ollama";
+if (provider !== "ollama" && provider !== "lm-studio") {
+  throw new Error("AGENT_MODEL_PROVIDER must be ollama or lm-studio");
+}
+const model = provider === "lm-studio"
+  ? new LmStudioChatModel({ model: process.env.LM_STUDIO_MODEL ?? "", baseUrl: process.env.LM_STUDIO_BASE_URL })
+  : new OllamaChatModel({ model: process.env.OLLAMA_MODEL ?? "qwen3", baseUrl: process.env.OLLAMA_BASE_URL });
 try {
   const result = await runAgent({
     model,

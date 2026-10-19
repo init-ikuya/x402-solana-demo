@@ -1,4 +1,5 @@
 export interface ToolCall {
+  id?: string;
   name: string;
   arguments: Record<string, unknown>;
 }
@@ -6,7 +7,7 @@ export interface ToolCall {
 export type ChatMessage =
   | { role: "system" | "user"; content: string }
   | { role: "assistant"; content: string; toolCalls?: ToolCall[] }
-  | { role: "tool"; toolName: string; content: string };
+  | { role: "tool"; toolName: string; toolCallId?: string; content: string };
 
 export interface AgentTool {
   name: string;
@@ -71,7 +72,8 @@ export async function runAgent(options: {
     for (const call of reply.toolCalls) {
       options.onToolCall?.(call.name);
       const result = await byName.get(call.name)!.execute(call.arguments);
-      messages.push({ role: "tool", toolName: call.name, content: result });
+      messages.push({ role: "tool", toolName: call.name, content: result,
+        ...(call.id ? { toolCallId: call.id } : {}) });
       toolResults.push({ toolName: call.name, content: result });
       toolCalls++;
     }

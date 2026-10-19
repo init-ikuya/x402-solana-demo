@@ -3,6 +3,7 @@ import { test } from "node:test";
 import { runAgent, type AgentTool, type ChatMessage, type ChatModel } from "../src/agent-core.js";
 import { reviewDemoAnswer } from "../src/demo-answer.js";
 import { OllamaChatModel } from "../src/ollama-model.js";
+import { LmStudioChatModel } from "../src/lm-studio-model.js";
 
 test("model calls a paid tool twice, sees both results, and answers", async () => {
   const invocations: string[] = [];
@@ -90,4 +91,28 @@ test("Ollama adapter sends native tool schema and preserves tool results in the 
   assert.equal(first.tools[0].function.name, "paid");
   assert.equal(second.messages.at(-2)?.tool_calls?.length, 1);
   assert.deepEqual(second.messages.at(-1), { role: "tool", tool_name: "paid", content: "fictional report" });
+});
+
+test("LM Studio adapter keeps tool-call IDs across the paid tool round trip", async () => {
+  const bodies: Array<{ model: string; messages: Array<Record<string, unknown>> }> = [];
+  const model = new LmStudioChatModel({ model: "loaded-local-model", fetchImpl: async (url, init) => {
+    assert.equal(String(url), "http://127.0.0.1:1234/v1/chat/completions");
+    bodies.push(JSON.parse(String(init?.body)));
+    const message = bodies.length === 1
+      ? { role: "assistant", content: null, tool_calls: [{ id: "call_1", type: "function",
+          function: { name: "paid", arguments: "{}" } }] }
+      : { role: "assistant", content: "The fictional report cost 300 units." };
+    return new Response(JSON.stringify({ choices: [{ message }] }), { status: 200 });
+  } });
+  const result = await runAgent({ model, prompt: "Get the report", tools: [{
+    name: "paid", description: "Paid", parameters: { type: "object", properties: {} },
+    async execute() { return "fictional report"; },
+  }] });
+  assert.equal(result.answer, "The fictional report cost 300 units.");
+  assert.equal(bodies[0].model, "loaded-local-model");
+  assert.deepEqual(bodies[1].messages.at(-2)?.tool_calls, [{ id: "call_1", type: "function",
+    function: { name: "paid", arguments: "{}" } }]);
+  assert.deepEqual(bodies[1].messages.at(-1), {
+    role: "tool", tool_call_id: "call_1", content: "fictional report",
+  });
 });

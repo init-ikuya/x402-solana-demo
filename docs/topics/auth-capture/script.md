@@ -1,6 +1,6 @@
 # Auth-Capture on Solana — speaker script
 
-Main English Demo Day talk: seven slides, approximately four minutes including a 60-second demo walkthrough. Use the [slides](slides.md), [architecture](ARCHITECTURE.md), and [demo runbook](demo.md) together. The walkthrough is a local test or a recorded Devnet run only when transaction signatures and balances have actually been checked.
+Main English Demo Day talk: seven slides, approximately four minutes including a 60-second edited recording of the browser agent. Use the [slides](slides.md), [architecture](ARCHITECTURE.md), and [demo runbook](demo.md) together. Label a locally simulated run as such; call it a Devnet payment only after checking its transaction signatures and balances.
 
 ## Timing
 
@@ -34,7 +34,7 @@ Source: [generic auth-capture specification](https://github.com/x402-foundation/
 
 ## 60-second demo cue
 
-Use the [browser demo and runbook](demo.md#browser-presentation). Show the agent selecting the auth-capture tool, the 402 response with a 1000-unit ceiling and deadlines, the redacted signed retry, and the paid report with a 300-unit settlement response and payment ID. The UI's 700-unit remainder is calculated; show a LiteSVM assertion or verified live balance record for the actual release and optional 100-unit merchant-funded refund. If using a live Devnet run, show actual signatures and balances. Do not label simulated RPC output as a Devnet payment. No video has been recorded yet.
+Use the [pre-recorded browser-agent demo and runbook](demo.md#browser-presentation) as the primary presentation path. Point to the 402 response with a 1000-unit ceiling, the redacted signed retry, and the paid report with a 300-unit settlement response and payment ID. Use the final seconds for recorded confirmed account counters if available. The UI's 700-unit remainder is calculated; show a verified Devnet balance record before claiming a real transfer. The clip may shorten waiting periods, so do not imply that its edited duration is the actual settlement latency. Keep refund, deadline reclaim, tests, and CLI operations in the slides or Q&A, outside this minute. No video has been recorded yet.
 
 ## Slide 4 — Request lifecycle
 
@@ -57,6 +57,6 @@ Use the [browser demo and runbook](demo.md#browser-presentation). Show the agent
 - The paid report is explicitly fictional parody, not real private information.
 - The example uses classic SPL Token, associated token accounts, one merchant, and zero protocol fees.
 - The merchant can refuse a refund or lack liquidity. The payer reclaim returns only funds still held.
-- The in-request capture is relayed through facilitator `/settle`; later refund, capture, void, or reclaim uses a direct CLI transaction.
+- The in-request capture is relayed through facilitator `/settle`; later refund, capture, void, or reclaim uses a direct transaction tool for development checks and is outside the browser presentation.
 - The custom auth-capture program does not implement [payment-channels Issue #90](https://github.com/solana-foundation/payment-channels/issues/90).
 - Avoid claims of first implementation or official SVM compatibility.
