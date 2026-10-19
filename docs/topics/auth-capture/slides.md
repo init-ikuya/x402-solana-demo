@@ -110,7 +110,7 @@ style: |
 <div class="chain-links"><div>↓ direct reclaim</div><div>↓ authorized operations</div><div>↓ relay</div></div>
 <div class="node chain"><b>Anchor program + payment PDA + hold vault</b><p>Validate signatures, deadlines, operation sequence, and amounts</p></div>
 <div class="band">The facilitator cannot replace payer or merchant authorization.</div>
-<p class="small muted" style="margin-top:18px">Later refunds and payer reclaim use direct signed CLI transactions. The model never receives keys.</p>
+<p class="small muted" style="margin-top:18px">The browser agent runs the paid request. Later refunds and payer reclaim are separate operations. The model never receives keys.</p>
 <div class="sources">Signer model: <a href="ARCHITECTURE.md#actors-and-trust-boundaries">architecture</a> · <a href="../../../examples/client/src/payment-tools.ts">paid API tools</a><br>Authority and refund-funding requirements: <a href="https://github.com/x402-foundation/x402/blob/main/specs/schemes/auth-capture/scheme_auth_capture.md#network-requirements">generic specification</a>.</div>
 
 ---
@@ -154,9 +154,9 @@ style: |
 
 ## Start with escrow.<br>Track the remaining coverage.
 
-<div class="roadmap"><div class="card"><span class="tag">TODAY · LOCAL ESCROW</span><h3>Working prototype</h3><p>Anchor program, HTTP adapter, client tool, and direct operation CLI.</p></div><div class="steps"><div class="step"><span>✓</span> Hold, capture, void, reclaim</div><div class="step"><span>✓</span> Merchant-funded refund</div><div class="step"><span>→</span> Verify live Devnet balances</div><div class="step"><span>→</span> Specify direct charge separately</div></div></div>
+<div class="roadmap"><div class="card"><span class="tag">TODAY · LOCAL ESCROW</span><h3>Working prototype</h3><p>Anchor program, HTTP adapter, and browser-driven AI agent payment.</p></div><div class="steps"><div class="step"><span>✓</span> Hold, capture, void, reclaim</div><div class="step"><span>✓</span> Merchant-funded refund</div><div class="step"><span>→</span> Verify live Devnet balances</div><div class="step"><span>→</span> Specify direct charge separately</div></div></div>
 <div class="band">Experimental escrow binding; no official SVM interoperability claim.</div>
-<div class="sources"><a href="../../../programs/anchoring-payment-channels/src/auth_capture.rs">Anchor program</a> · <a href="ARCHITECTURE.md#binding-and-implementation-milestones">Roadmap</a> · <a href="https://github.com/x402-foundation/x402/blob/main/specs/schemes/auth-capture/scheme_auth_capture.md">Scheme flows</a><br>The separate <a href="../closing-settlement/slides.md">batch settlement track</a> does not define this binding.</div>
+<div class="sources"><a href="../../../programs/anchoring-payment-channels/src/auth_capture.rs">Anchor program</a> · <a href="ARCHITECTURE.md#binding-and-implementation-milestones">Roadmap</a> · <a href="https://github.com/x402-foundation/x402/blob/main/specs/schemes/auth-capture/scheme_auth_capture.md">Scheme flows</a><br>The separate <a href="../closing-settlement/ARCHITECTURE.md">Issue #90 design</a> does not define this binding.</div>
 
 ---
 
@@ -166,7 +166,7 @@ style: |
 
 <div class="arch-row"><div class="node"><b>Agent / client</b><p>Checks quote and budget<br>Signs the payment</p></div><div class="arrow">⇄</div><div class="node"><b>Gateway / API</b><p>Returns 402 and report<br>Calls the facilitator</p></div><div class="arrow">⇄</div><div class="node"><b>Facilitator</b><p>Checks authorization<br>Submits to Solana</p></div></div>
 <div class="demo-steps"><div>1 · Client ↔ gateway: GET → auth-capture 402 → signed hold retry.</div><div>2 · Gateway ↔ facilitator: confirm payer hold before the handler.</div><div>3 · Merchant ↔ facilitator: capture 300 and release 700 atomically.</div><div>4 · Gateway → client: paid JSON + PAYMENT-RESPONSE and payment ID.</div></div>
-<div class="sources">Demo: <a href="demo.md">runbook</a> · <a href="../../../examples/gateway/src/app.ts">gateway middleware</a> · <a href="../../../examples/client/src/payment-tools.ts">agent payment tools</a><br>Later refunds use a direct CLI. Local HTTP tests use simulated RPC.</div>
+<div class="sources">Demo: <a href="demo.md">runbook</a> · <a href="../../../examples/gateway/src/app.ts">gateway middleware</a> · <a href="../../../examples/client/src/payment-tools.ts">agent payment tools</a><br>Later refunds are outside the one-minute browser demo. Local HTTP tests use simulated RPC.</div>
 
 ---
 

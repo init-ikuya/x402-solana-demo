@@ -9,7 +9,7 @@
 - [Project notes](ideas.md): Goals, scope, and candidate issues.
 - [AI Gateway proposal](proposals/ai-gateway.md): Initial proposal. See the overall architecture and project notes for the current implementation scope.
 - Auth-capture main track: [architecture](topics/auth-capture/ARCHITECTURE.md), [slides](topics/auth-capture/slides.md), [speaker script](topics/auth-capture/script.md), and [demo runbook](topics/auth-capture/demo.md).
-- Batch settlement and Issue #90 reference track: [design](topics/closing-settlement/ARCHITECTURE.md), [slides](topics/closing-settlement/slides.md), and [speaker script](topics/closing-settlement/script.md).
+- Issue #90 Closing-period settlement: [design](topics/closing-settlement/ARCHITECTURE.md).
 - `references/`: Reference PDFs from the school and other local materials. PDFs are excluded from Git.
 
 ## Presentation materials
@@ -18,8 +18,7 @@ These materials are for the Solana School: Fall Class Demo Day. The presentation
 
 - [Auth-capture slides](topics/auth-capture/slides.md): Main presentation with seven main slides and two optional slides. `---` separates slides.
 - [Auth-capture speaker script](topics/auth-capture/script.md): English narration, four-minute timing, and a one-minute auth-capture walkthrough.
-- [Browser demo runbook](topics/auth-capture/demo.md): Real local agent process, visual payment timeline, recording fallback, and evidence limits.
-- [Batch-settlement slides and script](topics/closing-settlement/slides.md): Separate reference track for the official SDK route and future Issue #90 experiment.
+- [Browser demo runbook](topics/auth-capture/demo.md): Real local agent process, visual payment timeline, recorded presentation, and evidence limits.
 - Put any diagrams or screenshots in the relevant topic's `assets/` directory and reference them with relative paths.
 
 The slides are Markdown in [Marp](https://marp.app/) format. Diagrams and layout use HTML/CSS, so generation requires `--html`. The slides are 16:9 and have page numbers. Speaker scripts are separate files.
@@ -42,7 +41,7 @@ npx --yes @marp-team/marp-cli@4.5.0 --html --pdf docs/architecture-submission.md
 
 ## Generate the slides
 
-Run these commands from the repository root with Node.js and npm. The first run needs network access to download Marp CLI. CI renders both slide sets as PDFs and attaches `auth-capture-slides.pdf` and `closing-settlement-slides.pdf` to the nightly release.
+Run these commands from the repository root with Node.js and npm. The first run needs network access to download Marp CLI. CI renders the auth-capture slides as a PDF and attaches `auth-capture-slides.pdf` to the nightly release.
 
 ```sh
 # HTML for presenting in a browser
@@ -52,7 +51,7 @@ npx --yes @marp-team/marp-cli@4.5.0 --html docs/topics/auth-capture/slides.md -o
 npx --yes @marp-team/marp-cli@4.5.0 --html docs/topics/auth-capture/slides.md --pdf -o docs/topics/auth-capture/slides.pdf
 ```
 
-Generated files are excluded from Git; Markdown remains the editable source. To generate the batch reference version, replace `auth-capture` with `closing-settlement` in the commands.
+Generated files are excluded from Git; Markdown remains the editable source.
 
 ## Evidence and citations
 

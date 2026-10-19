@@ -28,7 +28,7 @@ See [ARCHITECTURE.md](docs/ARCHITECTURE.md) for the planned system architecture,
 
 For the running demo, see the [client–gateway–facilitator architecture](docs/demo-payment-architecture.md), including the auth-capture request sequence.
 
-The [auth-capture presentation](docs/topics/auth-capture/slides.md) is the Demo Day focus. A local [browser front end](examples/client/demo/index.html) displays the real agent's tool choice, x402 exchange, paid report, and answer, with a samurai-styled buyer and satirical provider. It explains the locally tested escrow binding and its limits. The [batch-settlement presentation](docs/topics/closing-settlement/slides.md) and proposed [Issue #90 Closing recovery](docs/topics/closing-settlement/ARCHITECTURE.md) remain separate reference material.
+The [auth-capture presentation](docs/topics/auth-capture/slides.md) is the Demo Day focus. A local [browser front end](examples/client/demo/index.html) displays the real agent's tool choice, x402 exchange, paid report, and answer, with a samurai-styled buyer and satirical provider. It explains the locally tested escrow binding and its limits. The proposed [Issue #90 Closing recovery](docs/topics/closing-settlement/ARCHITECTURE.md) remains separate design reference material.
 
 ## Upstream
 
@@ -80,7 +80,7 @@ Assets:
 - `anchoring_payment_channels.json`: Anchor IDL.
 - `anchoring_payment_channels.ts` and `anchoring_payment_channels_errors.ts`: TypeScript IDL types, not a generated SDK.
 - `architecture-submission.pdf`: Architecture submission, rendered from [`docs/architecture-submission.md`](docs/architecture-submission.md) during CI.
-- `auth-capture-slides.pdf`: Main presentation; `closing-settlement-slides.pdf`: batch-settlement reference track. Both render from Markdown during CI.
+- `auth-capture-slides.pdf`: Main presentation, rendered from Markdown during CI.
 - `build-info.json`: Commit, source ref, workflow run, and tool versions.
 - `SHA256SUMS.txt`: Checksums; verify downloaded files with `sha256sum --check SHA256SUMS.txt`.
 
@@ -110,7 +110,7 @@ Only these public files are packaged; deployment keypairs are excluded. The lint
 Example applications:
 
 - `examples/gateway/`: TypeScript x402 `exact`, repository-backed `upto` and auth-capture escrow, and official SVM batch service and local facilitator. See its [setup guide](examples/gateway/README.md).
-- `examples/client/`: TypeScript payment CLI, per-process spending controls, and a model-driven agent with a local Ollama adapter.
+- `examples/client/`: TypeScript payment CLI, per-process spending controls, and a model-driven agent with local LM Studio and Ollama adapters.
 
 The `exact` and `batch-settlement` routes use the official x402 SVM SDK and do not need this Anchor program. The `upto` and experimental escrow-only `auth-capture` routes use this repository's Anchor program and local facilitator. Its Solana payload is not interoperable with the official SVM `upto` binding, which fixes a different program ID and instruction format.
 

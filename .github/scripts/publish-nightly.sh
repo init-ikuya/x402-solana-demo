@@ -26,7 +26,7 @@ Development build from $GITHUB_REF_NAME. This is a rolling pre-release, not a st
 Commit: $GITHUB_SHA
 Build: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID
 
-Assets include the SBF v0 program, Anchor IDL, TypeScript IDL types, architecture submission PDF, two presentation PDFs, build metadata, and SHA-256 checksums.
+Assets include the SBF v0 program, Anchor IDL, TypeScript IDL types, architecture submission PDF, auth-capture presentation PDF, build metadata, and SHA-256 checksums.
 No deployment keypair is included. The TypeScript files are IDL types, not a generated SDK.
 
 Updated after successful main builds or explicit manual builds; not on a nightly schedule.
@@ -43,8 +43,17 @@ fi
 gh release upload nightly \
   anchoring_payment_channels.so anchoring_payment_channels.json \
   anchoring_payment_channels.ts anchoring_payment_channels_errors.ts \
-  architecture-submission.pdf closing-settlement-slides.pdf auth-capture-slides.pdf \
+  architecture-submission.pdf auth-capture-slides.pdf \
   build-info.json SHA256SUMS.txt --clobber
+
+# Remove the retired presentation asset from an existing rolling release.
+if [[ -n "$release_id" ]]; then
+  old_asset_id=$(gh api "repos/$GH_REPO/releases/$release_id/assets" \
+    --jq '.[] | select(.name == "closing-settlement-slides.pdf") | .id')
+  if [[ -n "$old_asset_id" ]]; then
+    gh api --method DELETE "repos/$GH_REPO/releases/assets/$old_asset_id"
+  fi
+fi
 
 # Move the rolling tag only after all assets have uploaded successfully.
 tag_exists=$(gh api "repos/$GH_REPO/git/matching-refs/tags/nightly" \

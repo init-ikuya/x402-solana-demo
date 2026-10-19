@@ -110,9 +110,6 @@ jobs:
             docs/architecture-submission.md -o docs/architecture-submission.pdf
           test -s docs/architecture-submission.pdf
           npx --yes @marp-team/marp-cli@4.5.0 --html --pdf \
-            docs/topics/closing-settlement/slides.md -o docs/topics/closing-settlement/slides.pdf
-          test -s docs/topics/closing-settlement/slides.pdf
-          npx --yes @marp-team/marp-cli@4.5.0 --html --pdf \
             docs/topics/auth-capture/slides.md -o docs/topics/auth-capture/slides.pdf
           test -s docs/topics/auth-capture/slides.pdf
       - name: Package public build outputs

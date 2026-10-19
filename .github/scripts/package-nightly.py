@@ -16,7 +16,6 @@ files = {
     Path('target/types/anchoring_payment_channels.ts'): 'anchoring_payment_channels.ts',
     Path('target/types/anchoring_payment_channels_errors.ts'): 'anchoring_payment_channels_errors.ts',
     Path('docs/architecture-submission.pdf'): 'architecture-submission.pdf',
-    Path('docs/topics/closing-settlement/slides.pdf'): 'closing-settlement-slides.pdf',
     Path('docs/topics/auth-capture/slides.pdf'): 'auth-capture-slides.pdf',
 }
 for source, name in files.items():
