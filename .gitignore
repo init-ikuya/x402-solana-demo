@@ -12,6 +12,7 @@ Thumbs.db
 
 # Local logs
 *.log
+.batch-*.json
 
 # Node build and dependencies
 **/node_modules/
