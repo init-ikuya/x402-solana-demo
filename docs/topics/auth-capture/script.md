@@ -1,56 +1,58 @@
 # Auth-Capture on Solana — speaker script
 
-Main English Demo Day talk: seven slides, approximately four minutes including a 60-second edited recording of the browser agent. Use the [slides](slides.md), [architecture](ARCHITECTURE.md), and [demo runbook](demo.md) together. Label a locally simulated run as such; call it a Devnet payment only after checking its transaction signatures and balances.
+Main English Demo Day talk: seven main slides, followed by an Appendix divider and two optional reference slides. Target 3 minutes 50 seconds, including a 60-second edited recording of the browser agent, leaving 10 seconds under the four-minute limit. Use the [slides](slides.md), [architecture](ARCHITECTURE.md), and [demo runbook](demo.md) together. Label a locally simulated run as such; call it a Devnet payment only after checking its transaction signatures and balances.
 
 ## Timing
 
 | Segment | Seconds |
 | --- | ---: |
 | Slide 1 — problem and result | 20 |
-| Slide 2 — specification and binding | 25 |
-| Slide 3 — actors and authority | 25 |
+| Slide 2 — EVM/SVM gap | 25 |
+| Slide 3 — actors and authority | 20 |
 | Auth-capture demo walkthrough | 60 |
-| Slide 4 — request lifecycle | 30 |
-| Slide 5 — money and refund | 25 |
-| Slide 6 — test evidence | 20 |
-| Slide 7 — limits and next validation | 15 |
-| Transitions | 20 |
+| Slide 4 — request lifecycle | 25 |
+| Slide 5 — money and refund | 20 |
+| Slide 6 — test evidence | 25 |
+| Slide 7 — limits and next validation | 20 |
+| Transitions | 15 |
 
-Total: 240 seconds. Rehearsal and video duration have not yet been measured.
+Total: 230 seconds. Rehearsal and video duration have not yet been measured.
 
-## Slide 1 — Hold, capture, refund
+Read each quoted paragraph while the matching PDF page is visible. After page 3, switch to the recorded demo; resume the PDF at page 4 when the clip ends. Page 8 is the Appendix divider, and pages 9–10 are optional reference slides with no scripted lines.
 
-> Hi everyone. This is an experimental auth-capture escrow flow for x402 on Solana. The client authorizes a bounded hold before an API request. The merchant charges the actual amount after the work and releases the rest. Our Anchor program and local HTTP demo implement that lifecycle.
+## PDF page 1 — Hold, capture, refund
 
-## Slide 2 — Specification and binding
+> Hi everyone. We built an experimental auth-capture escrow for x402 on Solana. An AI agent requests paid work, locks a maximum, then the merchant captures the actual cost and releases the rest. Here is the lifecycle.
 
-> The generic x402 specification describes an escrow flow and a separate direct authorization flow. We implement only the escrow flow. Our Solana transaction format is a project-specific binding, not an official interoperable SVM profile. The Foundation payment-channels Closing proposal is a different problem.
+## PDF page 2 — Specification and binding
 
-Source: [generic auth-capture specification](https://github.com/x402-foundation/x402/blob/main/specs/schemes/auth-capture/scheme_auth_capture.md).
+> Official x402 implements auth-capture for EVM, but has no published SVM implementation in the reviewed October 15 snapshot. Our Anchor program covers the escrow path, including later merchant-funded refunds and payer reclaim. This is a project-specific binding, not official SVM interoperability.
 
-## Slide 3 — Who signs
+Sources: [generic auth-capture specification](https://github.com/x402-foundation/x402/blob/faa1c694c66a3732aaabbce93bdae140e521a67d/specs/schemes/auth-capture/scheme_auth_capture.md), [EVM SDK source](https://github.com/x402-foundation/x402/tree/faa1c694c66a3732aaabbce93bdae140e521a67d/typescript/packages/mechanisms/evm/src/auth-capture), and [SVM SDK source](https://github.com/x402-foundation/x402/tree/faa1c694c66a3732aaabbce93bdae140e521a67d/typescript/packages/mechanisms/svm/src).
 
-> The model selects a paid API tool; application code checks the quote and budget. The payer signs the hold, and the facilitator confirms it before the API runs. The merchant signs capture, void, or refund. After the capture deadline, the payer can reclaim any remaining hold directly.
+## PDF page 3 — Who signs
 
-## 60-second demo cue
+> The model chooses the paid API tool, while application code enforces the budget. The payer signs the hold; the merchant signs capture or refund. The facilitator relays transactions, and the payer can reclaim an abandoned hold after the deadline.
+
+## Recorded demo — after PDF page 3
 
 Use the [pre-recorded browser-agent demo and runbook](demo.md#browser-presentation) as the primary presentation path. Point to the 402 response with a 1000-unit ceiling, the redacted signed retry, and the paid report with a 300-unit settlement response and payment ID. Use the final seconds for recorded confirmed account counters if available. The UI's 700-unit remainder is calculated; show a verified Devnet balance record before claiming a real transfer. The clip may shorten waiting periods, so do not imply that its edited duration is the actual settlement latency. Keep refund, deadline reclaim, tests, and CLI operations in the slides or Q&A, outside this minute. No video has been recorded yet.
 
-## Slide 4 — Request lifecycle
+## PDF page 4 — Request lifecycle
 
-> This request uses two settlement phases. First the facilitator confirms a 1000-unit hold. The gateway then runs the fictional paid API. After success, the merchant signs one atomic transaction that captures 300 and releases 700. If the task fails, the merchant can release the hold. A separate payer-only reclaim is available after the capture deadline.
+> The facilitator confirms a 1000-unit hold before the API runs. After success, one transaction captures 300 and releases 700. If the task fails, the merchant voids the hold. An abandoned hold can be reclaimed after the deadline.
 
-## Slide 5 — Money and refund
+## PDF page 5 — Money and refund
 
-> Release and refund are different transfers. The 700-unit release comes from the unused hold. A later 100-unit refund comes from the merchant's token account, with merchant consent and sufficient balance. The client has recovered 800 in this example, and the merchant retains 200.
+> Release and refund move different money. The 700-unit release comes from escrow. A later 100-unit refund comes from the merchant's wallet, with merchant consent and liquidity. The merchant ultimately keeps 200.
 
-## Slide 6 — Evidence
+## PDF page 6 — Evidence
 
-> LiteSVM tests exercise capture, release, refund, wrong authority, overcharge, replay, deadlines, duplicate funding, and insufficient refund liquidity. An HTTP integration test runs the client, gateway, and facilitator against a simulated RPC. Type checks and the broader payment test suite pass. These are local results; live Devnet balances remain unverified.
+> LiteSVM tests cover authority, amount bounds, replay, deadlines, and refund liquidity. The HTTP integration test uses simulated RPC. Devnet signatures and balances are still unverified, so the recording must be labeled according to the environment it actually uses.
 
-## Slide 7 — Scope
+## PDF page 7 — Scope
 
-> This is a working local escrow prototype, not the complete generic scheme. Direct authorization and charge are still open. We also need a recorded Devnet transaction and stronger restart recovery before an interoperability claim. The simple hold, capture, release, and merchant-funded refund path is the contribution we can show today. Thank you.
+> Today's contribution is the escrow lifecycle on Solana. Direct charge and official interoperability remain outside scope. Next: deploy to Devnet, verify balances, and record the agent's payment. Thank you.
 
 ## Presenter notes
 
