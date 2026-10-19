@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 260" role="img" aria-labelledby="title">
+  <title id="title">Satirical blond API provider in a navy suit and red tie</title>
+  <defs>
+    <linearGradient id="bg" x2="1" y2="1"><stop stop-color="#ffe8ad"/><stop offset="1" stop-color="#f6bd86"/></linearGradient>
+    <linearGradient id="jacket" x2="1" y2="1"><stop stop-color="#294665"/><stop offset="1" stop-color="#102b48"/></linearGradient>
+    <clipPath id="crop"><circle cx="120" cy="124" r="111"/></clipPath>
+  </defs>
+  <circle cx="120" cy="124" r="111" fill="url(#bg)"/>
+  <g clip-path="url(#crop)">
+    <path d="M1 264q12-78 82-90h74q70 12 82 90" fill="url(#jacket)"/>
+    <path d="M83 171l36 33 38-33-10 69H95z" fill="#fff9ed"/>
+    <path d="M115 192h12l9 42-16 26-15-26z" fill="#d72d39"/>
+    <path d="M115 192h12l-7 11z" fill="#a91a2d"/>
+    <path d="M78 175l43 83-65-52 11-24zM162 175l-42 83 65-52-11-24z" fill="#142f4e"/>
+    <path d="M82 101q-11-6-14 7-1 14 11 19M160 101q12-6 15 7 1 14-12 19" fill="#efae8d" stroke="#ca896c" stroke-width="2"/>
+    <path d="M78 89q2-39 40-43 42-4 48 43l-4 45q-9 46-43 47-34 0-41-47z" fill="#f6c5a2" stroke="#ce9676" stroke-width="2"/>
+    <path d="M78 98q-13-22 1-42 12-19 38-18 8-17 28-16 29 0 33 25-4 14-26 17 15 4 14 29-12-12-24-13-10-1-28 5-14 5-36 13z" fill="#efca57"/>
+    <path d="M75 84q22-24 51-27 28-3 46-20-2 17-26 27-23 10-71 20z" fill="#f9db72"/>
+    <path d="M78 93q22-7 39-17 32-17 57-13" fill="none" stroke="#d9ac40" stroke-width="5" stroke-linecap="round"/>
+    <path d="M88 105q12-6 23-2M132 103q13-5 25 2" fill="none" stroke="#aa7853" stroke-width="4" stroke-linecap="round"/>
+    <ellipse cx="101" cy="112" rx="3.6" ry="3" fill="#29444b"/><ellipse cx="146" cy="112" rx="3.6" ry="3" fill="#29444b"/>
+    <path d="M122 110l-4 18q3 4 10 1" fill="none" stroke="#ce947a" stroke-width="2.5" stroke-linecap="round"/>
+    <path d="M105 145q16 8 34-1" fill="none" stroke="#aa645c" stroke-width="3" stroke-linecap="round"/>
+    <path d="M96 162q23 14 48 0" fill="none" stroke="#e4a88c" stroke-width="3"/>
+    <path d="M60 220l18 7M179 227l-16 8" stroke="#466381" stroke-width="3" stroke-linecap="round"/>
+  </g>
+  <circle cx="120" cy="124" r="111" fill="none" stroke="#fff8e7" stroke-width="7"/>
+</svg>

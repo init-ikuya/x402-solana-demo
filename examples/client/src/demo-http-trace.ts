@@ -34,15 +34,25 @@ export function createDemoHttpTrace(fetchImpl: typeof fetch = fetch, log: Log = 
       const terms = quote && typeof quote === "object" && !Array.isArray(quote)
         ? selectedFields(quote as Record<string, unknown>,
           ["scheme", "network", "amount", "asset", "payTo", "maxTimeoutSeconds"]) : {};
+      if (quote && typeof quote === "object" && !Array.isArray(quote)) {
+        const extra = (quote as Record<string, unknown>).extra;
+        if (extra && typeof extra === "object" && !Array.isArray(extra)) {
+          Object.assign(terms, selectedFields(extra as Record<string, unknown>,
+            ["binding", "paymentFlow", "captureDeadline", "refundDeadline"]));
+        }
+      }
       log(`[HTTP] ← 402 PAYMENT-REQUIRED (decoded): ${JSON.stringify(terms)}`);
     } else if (response.status === 402) {
       log("[HTTP] ← 402 PAYMENT-REQUIRED: missing or unreadable");
     } else {
       const settlement = decodedHeader(response.headers.get("PAYMENT-RESPONSE"));
-      const details = settlement
-        ? JSON.stringify(selectedFields(settlement, ["success", "network", "payer", "transaction", "amount", "errorReason"]))
-        : "missing or unreadable";
-      log(`[HTTP] ← ${response.status} PAYMENT-RESPONSE (decoded): ${details}`);
+      const details = settlement ? selectedFields(settlement,
+        ["success", "network", "payer", "transaction", "amount", "errorReason"]) : undefined;
+      const extra = settlement?.extra;
+      if (details && extra && typeof extra === "object" && !Array.isArray(extra)) {
+        Object.assign(details, selectedFields(extra as Record<string, unknown>, ["paymentId"]));
+      }
+      log(`[HTTP] ← ${response.status} PAYMENT-RESPONSE (decoded): ${details ? JSON.stringify(details) : "missing or unreadable"}`);
       if (response.ok && response.headers.get("content-type")?.includes("application/json")) {
         try {
           const body: unknown = await response.clone().json();

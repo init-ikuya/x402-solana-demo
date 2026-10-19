@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 260" role="img" aria-labelledby="title">
+  <title id="title">Samurai-styled client agent</title>
+  <defs>
+    <linearGradient id="bg" x2="1" y2="1"><stop stop-color="#cdeee0"/><stop offset="1" stop-color="#8fc9b9"/></linearGradient>
+    <linearGradient id="armor" x2="1" y2="1"><stop stop-color="#216d6b"/><stop offset="1" stop-color="#123c51"/></linearGradient>
+    <clipPath id="crop"><circle cx="120" cy="124" r="111"/></clipPath>
+  </defs>
+  <circle cx="120" cy="124" r="111" fill="url(#bg)"/>
+  <g clip-path="url(#crop)">
+    <path d="M188 243l31-105" stroke="#8a4d2d" stroke-width="10" stroke-linecap="round"/>
+    <path d="M188 236l30-101" stroke="#e6ded0" stroke-width="4" stroke-linecap="round"/>
+    <path d="M185 190l26 8M189 180l25 8M193 170l24 8" stroke="#e2bc69" stroke-width="4"/>
+    <path d="M2 264q7-71 69-86l48 16 49-16q61 15 70 86" fill="url(#armor)"/>
+    <path d="M74 180l46 19 47-19-20 59H94z" fill="#e2e7d9"/>
+    <path d="M48 202l29-25 43 48-26 40H20zM191 202l-29-25-42 48 25 40h75z" fill="#245b69"/>
+    <path d="M68 187l52 52 52-52" fill="none" stroke="#d7a550" stroke-width="6"/>
+    <path d="M91 224h58M83 240h74" stroke="#3d8990" stroke-width="5"/>
+    <circle cx="120" cy="219" r="8" fill="#dfb961"/>
+    <path d="M102 45q-5-21 17-25 25-4 25 24l-15 23z" fill="#203940"/>
+    <path d="M81 71q5-32 38-34 36-3 43 33l-3 58q-7 48-39 48-33 0-40-48z" fill="#edbd98" stroke="#bd8668" stroke-width="2"/>
+    <path d="M76 103q-8-50 24-58 22-20 52-2 19 10 13 59-8-18-14-25-19 0-31-10-15 14-42 17z" fill="#233d42"/>
+    <path d="M76 79q22-7 42-18 15 13 40 15" fill="none" stroke="#172f35" stroke-width="8"/>
+    <path d="M82 91q38 12 76 0" fill="none" stroke="#f8f3e6" stroke-width="12"/>
+    <path d="M103 95l16-1 13 1-13 15z" fill="#c94b3a"/>
+    <path d="M84 106q-10-6-10 8 0 12 11 14M156 106q11-6 11 8-1 12-12 14" fill="#e7b28f" stroke="#bd8668" stroke-width="2"/>
+    <path d="M91 118q11-5 20 0M131 118q10-5 19 0" fill="none" stroke="#3c4540" stroke-width="4" stroke-linecap="round"/>
+    <circle cx="102" cy="126" r="3.2" fill="#263940"/><circle cx="140" cy="126" r="3.2" fill="#263940"/>
+    <path d="M119 122l-3 19 7 1" fill="none" stroke="#bd8668" stroke-width="2.5" stroke-linecap="round"/>
+    <path d="M107 154q13 6 26 0" fill="none" stroke="#8d6759" stroke-width="2.5" stroke-linecap="round"/>
+  </g>
+  <circle cx="120" cy="124" r="111" fill="none" stroke="#f1fff2" stroke-width="7"/>
+</svg>

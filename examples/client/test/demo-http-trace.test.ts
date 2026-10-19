@@ -12,17 +12,19 @@ test("demo trace shows the exchange without exposing the signed payload or consu
     requests.push(headers);
     if (!headers.has("PAYMENT-SIGNATURE")) {
       return new Response("{}", { status: 402, headers: {
-        "PAYMENT-REQUIRED": encoded({ accepts: [{ scheme: "upto", network: "solana:devnet",
-          amount: "1000", asset: "test-mint", payTo: "test-merchant" }] }),
+        "PAYMENT-REQUIRED": encoded({ accepts: [{ scheme: "auth-capture", network: "solana:devnet",
+          amount: "1000", asset: "test-mint", payTo: "test-merchant",
+          extra: { binding: "anchor-auth-capture-escrow-v1", paymentFlow: "escrow",
+            captureDeadline: "123", refundDeadline: "456", secret: "never-print" } }] }),
       } });
     }
     return Response.json({ reportId: "FICTION-12345678", title: "Demo", headline: "Demo report", fictional: true }, {
       headers: { "PAYMENT-RESPONSE": encoded({ success: true, network: "solana:devnet",
-        transaction: "test-signature", amount: "300" }) },
+        transaction: "test-signature", amount: "300", extra: { paymentId: "test-payment-pda" } }) },
     });
   };
   const traced = createDemoHttpTrace(fetchImpl, line => lines.push(line));
-  const url = "http://127.0.0.1:4021/api/trump-insider/upto";
+  const url = "http://127.0.0.1:4021/api/trump-insider/auth-capture";
   const challenge = await traced(url);
   assert.equal(challenge.status, 402);
   const paid = await traced(url, { headers: { "PAYMENT-SIGNATURE": "secret-signed-payload" } });
@@ -31,7 +33,10 @@ test("demo trace shows the exchange without exposing the signed payload or consu
   assert.equal(requests[1].get("PAYMENT-SIGNATURE"), "secret-signed-payload");
   assert.match(lines.join("\n"), /402 PAYMENT-REQUIRED.*"amount":"1000"/);
   assert.match(lines.join("\n"), /200 PAYMENT-RESPONSE.*"amount":"300"/);
+  assert.match(lines.join("\n"), /"captureDeadline":"123"/);
+  assert.match(lines.join("\n"), /"paymentId":"test-payment-pda"/);
   assert.match(lines.join("\n"), /JSON body preview.*FICTION-12345678/);
   assert.match(lines.join("\n"), /PAYMENT-SIGNATURE: \[redacted\]/);
   assert.doesNotMatch(lines.join("\n"), /secret-signed-payload/);
+  assert.doesNotMatch(lines.join("\n"), /never-print/);
 });

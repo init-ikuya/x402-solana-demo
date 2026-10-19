@@ -32,6 +32,7 @@ export async function runAgent(options: {
   tools: readonly AgentTool[];
   maxTurns?: number;
   maxToolCalls?: number;
+  onToolCall?: (name: string) => void;
   reviewAnswer?: (answer: string, toolResults: readonly { toolName: string; content: string }[]) => string | undefined;
 }): Promise<AgentResult> {
   const { model, prompt, tools } = options;
@@ -68,6 +69,7 @@ export async function runAgent(options: {
     }
     messages.push({ role: "assistant", content: reply.content, toolCalls: reply.toolCalls });
     for (const call of reply.toolCalls) {
+      options.onToolCall?.(call.name);
       const result = await byName.get(call.name)!.execute(call.arguments);
       messages.push({ role: "tool", toolName: call.name, content: result });
       toolResults.push({ toolName: call.name, content: result });
