@@ -23,7 +23,7 @@ const signed = (signer: TransactionSigner, writableRole = false) => ({
   signer,
 });
 
-export function instructionDiscriminator(name: "open" | "settle" | "refund"): Uint8Array {
+export function instructionDiscriminator(name: string): Uint8Array {
   return createHash("sha256").update(`global:${name}`).digest().subarray(0, 8);
 }
 

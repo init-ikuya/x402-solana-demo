@@ -1,3 +1,4 @@
+pub mod auth_capture;
 pub mod constants;
 pub mod error;
 pub mod instructions;
@@ -5,6 +6,8 @@ pub mod state;
 
 use anchor_lang::prelude::*;
 
+#[allow(ambiguous_glob_reexports)]
+pub use auth_capture::*;
 pub use constants::*;
 pub use instructions::*;
 pub use state::*;
@@ -25,5 +28,39 @@ pub mod anchoring_payment_channels {
 
     pub fn refund(ctx: Context<Refund>) -> Result<()> {
         crate::instructions::refund::handle_refund(ctx)
+    }
+
+    pub fn authorize_hold(
+        ctx: Context<AuthorizeHold>,
+        nonce: u64,
+        amount: u64,
+        capture_deadline: i64,
+        refund_deadline: i64,
+    ) -> Result<()> {
+        auth_capture::authorize_hold(ctx, nonce, amount, capture_deadline, refund_deadline)
+    }
+
+    pub fn capture_hold(ctx: Context<HoldOperation>, amount: u64, sequence: u64) -> Result<()> {
+        auth_capture::operate_hold(ctx, HoldAction::Capture, amount, sequence)
+    }
+
+    pub fn capture_and_void_hold(
+        ctx: Context<HoldOperation>,
+        amount: u64,
+        sequence: u64,
+    ) -> Result<()> {
+        auth_capture::operate_hold(ctx, HoldAction::CaptureAndVoid, amount, sequence)
+    }
+
+    pub fn void_hold(ctx: Context<HoldOperation>, sequence: u64) -> Result<()> {
+        auth_capture::operate_hold(ctx, HoldAction::Void, 0, sequence)
+    }
+
+    pub fn reclaim_hold(ctx: Context<HoldOperation>, sequence: u64) -> Result<()> {
+        auth_capture::operate_hold(ctx, HoldAction::Reclaim, 0, sequence)
+    }
+
+    pub fn refund_captured(ctx: Context<HoldOperation>, amount: u64, sequence: u64) -> Result<()> {
+        auth_capture::refund_captured(ctx, amount, sequence)
     }
 }
