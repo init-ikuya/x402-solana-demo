@@ -4,7 +4,7 @@ theme: default
 paginate: true
 size: 16:9
 lang: en
-title: Anchoring Payment Channels
+title: Batch Settlement on Solana
 style: |
   section {
     background: #101f2b; color: #edf3f4; padding: 52px 64px 78px;
@@ -81,105 +81,103 @@ style: |
   .step span { color: #72e2ba; margin-right: 18px; }
 ---
 
-
-<div class="eyebrow">Solana School · Fall Class / Demo Day</div>
-<div class="cover-layout"><div><h1>Keep the<br>settlement<br><span class="accent">path open.</span></h1><p class="cover-sub">Recovering batch payments<br>when the facilitator is unavailable.</p></div>
-<div class="cover-flow"><div class="cover-step"><span>01</span> Client requests closure</div><div class="cover-step"><span>02</span> Facilitator goes offline</div><div class="cover-step"><span>03</span> Merchant settles directly</div><p class="small muted">Solana x402 · Independent Anchor experiment<br>Design stage, not an implemented result</p></div></div>
-<p class="date">October <span>19 or 21</span>, 2026 <span>· Date TBD</span></p>
-<div class="sources">Proposed recovery path: <a href="https://github.com/solana-foundation/payment-channels/issues/90">payment-channels #90</a> · <a href="ARCHITECTURE.md#design-focus-issue-90-planned">Our architecture</a></div>
-
----
-
-<!-- _class: paper -->
-
-<div class="eyebrow">01 / Issue #90 · Planned experiment</div>
-
-## An existing protocol.<br>A specific recovery gap.
-
-<div class="grid two">
-<div class="card"><h3>x402 batch-settlement</h3><p>Signed requests accumulate off-chain.<br>The merchant redeems later. [1]</p></div>
-<div class="card"><h3>Existing foundation</h3><p>Solana specification and SDK exist. [1, 2]<br>The channel program reports mainnet operation. [3]</p></div></div>
-<div class="band">Focus: merchant recovery during Closing when the facilitator is unavailable. [4]</div>
-<p class="small muted" style="margin-top:18px">Repository scope stays all four schemes. This talk examines one improvement.</p>
-<div class="sources">[1] <a href="https://github.com/x402-foundation/x402/blob/cb0ec5bca0a5b21860a36bb60f34433c2e8e0d71/specs/schemes/batch-settlement/scheme_batch_settlement_svm.md">SVM specification</a> · [2] <a href="https://github.com/x402-foundation/x402/blob/cb0ec5bca0a5b21860a36bb60f34433c2e8e0d71/typescript/packages/mechanisms/svm/src/batch-settlement/README.md">SDK</a> · [3] <a href="https://github.com/solana-foundation/payment-channels/blob/3ffa4d6728ad88e4a9667a76ad9ccd68a302c696/README.md">Foundation status</a> · [4] <a href="https://github.com/solana-foundation/payment-channels/issues/90">Issue #90</a><br>Pinned source snapshots; recheck current status before presenting. Published code and deployment reports are not an independent stability assessment.</div>
-
----
-
-<div class="eyebrow">02 / Issue #90 · Planned experiment</div>
-
-## Three actors. Two different authorities.
-
-<div class="arch-row">
-<div class="node"><b>Agent / client</b><p>Funds the channel<br>Signs payment vouchers</p></div><div class="arrow">→</div>
-<div class="node"><b>Gateway / merchant</b><p>Serves the API<br>Stores the latest voucher</p></div><div class="arrow">→</div>
-<div class="node"><b>Facilitator</b><p>Channel payee authority<br>Signs cooperative closure</p></div></div>
-<div class="chain-links"><div>↓ request_close</div><div>↓ proposed direct settle</div><div>↓ settle_and_seal</div></div>
-<div class="node chain"><b>Solana program + channel state + escrow</b><p>Validate authorization · record settlement · distribute funds separately</p></div>
-<div class="band">In this arrangement, the merchant receives payment; the facilitator holds the payee role.</div>
-<p class="small muted" style="margin-top:18px">Current demo: the model calls a paid API tool; application code checks the budget and signs. Batch support is planned.</p>
-<div class="sources">Role split: <a href="https://github.com/solana-foundation/payment-channels/issues/90">#90 context</a> · <a href="https://github.com/solana-foundation/payment-channels/blob/3ffa4d6728ad88e4a9667a76ad9ccd68a302c696/README.md#instructions">On-chain operations</a><br>Current tool implementation: <a href="../../../examples/client/src/payment-tools.ts">exact / upto demo</a>. The fallback needs its own RPC connection and SOL fee payer.</div>
+<div class="eyebrow">Reference topic · Solana School / Demo Day</div>
+<div class="cover-layout"><div><h1>One channel.<br>Many requests.<br><span class="accent">Settle later.</span></h1><p class="cover-sub">Batch settlement for an x402 paid API on Solana.</p></div>
+<div class="cover-flow"><div class="cover-step"><span>01</span> Fund a payment channel</div><div class="cover-step"><span>02</span> Sign cumulative vouchers</div><div class="cover-step"><span>03</span> Claim and distribute later</div><p class="small muted">Official SVM SDK route integrated locally<br>Full on-chain payout still unverified</p></div></div>
+<p class="date">Separate <span>batch-settlement reference deck</span></p>
+<div class="sources">Binding: <a href="https://github.com/x402-foundation/x402/blob/cb0ec5bca0a5b21860a36bb60f34433c2e8e0d71/specs/schemes/batch-settlement/scheme_batch_settlement_svm.md">x402 SVM specification</a> · <a href="../../../examples/gateway/README.md#batch-settlement-payment-flow">Our batch route</a></div>
 
 ---
 
 <!-- _class: paper -->
 
-<div class="eyebrow">03 / Issue #90 · Planned experiment</div>
+<div class="eyebrow">01 / The idea</div>
 
-## Closing currently blocks direct settlement.
+## Repeated paid calls, one funded channel.
 
 <div class="grid three">
-<div class="card"><div class="number">01</div><h3>Work completed</h3><p>The merchant holds a valid voucher that is not yet settled.</p></div>
-<div class="card"><div class="number">02</div><h3>Closure requested</h3><p>The client calls request_close.<br>The grace period begins.</p></div>
-<div class="card"><div class="number">03</div><h3>Facilitator offline</h3><p>Normal settle rejects Closing.<br>The merchant cannot use that route.</p></div></div>
-<div class="band">Existing alternative: payee-signed settle_and_seal before the deadline.</div>
-<div class="sources">Baseline code: <a href="https://github.com/solana-foundation/payment-channels/blob/3ffa4d6728ad88e4a9667a76ad9ccd68a302c696/program/payment_channels/src/instructions/settle.rs">Open-only settle</a> · <a href="https://github.com/solana-foundation/payment-channels/blob/3ffa4d6728ad88e4a9667a76ad9ccd68a302c696/program/payment_channels/src/instructions/settle_and_seal.rs">payee-signed settle_and_seal</a><br>Scenario follows <a href="https://github.com/solana-foundation/payment-channels/issues/90">Issue #90</a>. Baseline commit: 3ffa4d6. Not a measured outage.</div>
+<div class="card"><div class="number">01</div><h3>Deposit</h3><p>Client funds channel escrow once.</p></div>
+<div class="card"><div class="number">02</div><h3>Vouchers</h3><p>Each paid call signs a higher cumulative total.</p></div>
+<div class="card"><div class="number">03</div><h3>Payout</h3><p>Merchant claim and final distribution happen later.</p></div></div>
+<div class="band">The latest accepted voucher is the claim; accepting it does not transfer tokens.</div>
+<div class="sources">Sources: <a href="https://github.com/x402-foundation/x402/blob/cb0ec5bca0a5b21860a36bb60f34433c2e8e0d71/specs/schemes/batch-settlement/scheme_batch_settlement_svm.md">SVM specification</a> · <a href="https://github.com/x402-foundation/x402/blob/cb0ec5bca0a5b21860a36bb60f34433c2e8e0d71/typescript/packages/mechanisms/svm/src/batch-settlement/README.md">SDK guide</a><br>Protocol mechanics, not a measured fee or speed comparison.</div>
 
 ---
 
-<div class="eyebrow">04 / Issue #90 · Planned experiment</div>
+<div class="eyebrow">02 / Request and payout lifecycle</div>
 
-## Add a deadline-bounded recovery route.
+## From HTTP 402 to deferred payout.
 
-<div class="arch-row"><div class="node"><b>Gateway worker</b><p>Load the saved voucher<br>Submit directly</p></div><div class="arrow">→</div><div class="node"><b>Program checks</b><p>Closing + before deadline<br>Valid signature + bounded total</p></div><div class="arrow">→</div><div class="node"><b>Record settlement</b><p>Update settled amount<br>Remain Closing</p></div></div>
-<div class="band">After the deadline: seal → distribute payment and unused-fund refund.</div>
-<p class="small muted" style="margin-top:22px">At or after the deadline, direct settle fails. It also fails if sealing has already won the race.<br>Recording settlement does not itself transfer tokens or extend the deadline.</p>
-<div class="sources">Changed state gate: <a href="https://github.com/solana-foundation/payment-channels/issues/90">#90 proposal</a> · <a href="https://github.com/solana-foundation/payment-channels/blob/3ffa4d6728ad88e4a9667a76ad9ccd68a302c696/README.md#instructions">Separate seal / distribute operations</a><br>Our design: independent Anchor deployment, not an upgrade of the canonical program.</div>
+<div class="arch-row">
+<div class="node"><b>Agent / client</b><p>Checks budget<br>Signs cumulative voucher</p></div><div class="arrow">→</div>
+<div class="node"><b>Gateway</b><p>Returns 402 terms<br>Stores accepted state</p></div><div class="arrow">→</div>
+<div class="node"><b>Facilitator</b><p>Verifies request<br>Submits later claim</p></div></div>
+<div class="chain-links"><div>Channel deposit</div><div>Periodic redeem()</div><div>Claim / distribute</div></div>
+<div class="node chain"><b>Foundation payment-channel program + escrow</b><p>Signed totals are bounded by the channel deposit</p></div>
+<div class="band">A paid API response and an on-chain token payout are separate events.</div>
+<div class="sources">Our path: <a href="../../../examples/client/src/batch-client.ts">client</a> · <a href="../../../examples/gateway/src/app.ts">HTTP route</a> · <a href="../../../examples/gateway/src/main.ts">redemption worker</a> · <a href="../../../examples/gateway/src/run-facilitator.ts">facilitator</a><br>Full deposit-to-distribution execution is not yet verified in this repository.</div>
 
 ---
 
 <!-- _class: paper -->
 
-<div class="eyebrow">05 / Issue #90 · Planned experiment</div>
+<div class="eyebrow">03 / Implemented in this repository</div>
 
-## Make the difference observable.
+## The official SDK route is wired in.
 
-<div class="checks">
-<div class="check"><b>01 · Same outage scenario</b><p>Baseline rejects Closing settle.<br>Modified gate accepts before expiry.</p></div>
-<div class="check"><b>02 · Exact time boundary</b><p>Before deadline: accept valid voucher.<br>At or after deadline: reject.</p></div>
-<div class="check"><b>03 · Authorization remains</b><p>Reject wrong signatures, excess amounts,<br>expired and repeated vouchers.</p></div>
-<div class="check"><b>04 · Correct final balances</b><p>Record first; pay through distribution.<br>Verify one payment and the refund.</p></div></div>
-<div class="band">Also test restart, unknown transaction outcomes, and sealing before recovery.</div>
-<div class="sources">Proposed acceptance criteria: <a href="ARCHITECTURE.md#demonstration-and-acceptance-criteria">Our validation plan</a> · Constraints: <a href="https://github.com/solana-foundation/payment-channels/issues/90">Issue #90</a><br>These are planned tests, not passing results.</div>
-
----
-
-<div class="eyebrow">06 / Issue #90 · Planned experiment</div>
-
-## One focused experiment.<br>Four schemes remain in scope.
-
-<div class="roadmap"><div class="card"><span class="tag">TODAY · #90 DESIGN STAGE</span><h3>Anchor upto prototype</h3><p>Single-request escrow exists.<br>Closing recovery is planned.</p></div><div class="steps"><div class="step"><span>01</span> Reproduce baseline lifecycle</div><div class="step"><span>02</span> Implement the #90 state gate</div><div class="step"><span>03</span> Compare behavior and balances</div><div class="step"><span>04</span> Demonstrate with facilitator offline</div></div></div>
-<div class="band">Contribution target: reduce facilitator dependence during the Closing grace period.</div>
-<div class="sources"><a href="../../../programs/anchoring-payment-channels/src/lib.rs">Current program</a> · <a href="../../ARCHITECTURE.md">Four-scheme scope and #90 design</a><br>Recheck upstream PRs before implementation. No claim of guaranteed recovery after sealing.<br>Further reading: <a href="https://x402.org/wp-content/uploads/sites/10/2026/06/x402-whitepaper.pdf">x402 whitepaper</a> · <a href="https://github.com/x402-foundation/x402/tree/main/specs">x402 specifications</a></div>
+<div class="grid two">
+<div class="card"><h3>Client and agent</h3><p>Choose the batch quote, reuse a stored channel, sign vouchers, and expose a refund command.</p></div>
+<div class="card"><h3>Gateway and facilitator</h3><p>Advertise batch terms, persist channel and pending state, and start a periodic redemption worker.</p></div></div>
+<div class="band">Opt-in /api/trump-insider/batch · @x402/svm 2.28.0 · Solana Devnet USDC</div>
+<p class="small muted" style="margin-top:18px">This route targets the Foundation channel program. The repository's Anchor program backs the separate upto flow.</p>
+<div class="sources"><a href="../../../examples/client/src/payment-tools.ts">Agent tools</a> · <a href="../../../examples/client/src/batch-client.ts">Client store</a> · <a href="../../../examples/gateway/src/batch-store.ts">Gateway store</a> · <a href="../../../examples/gateway/src/batch-facilitator-store.ts">Facilitator stores</a></div>
 
 ---
 
-<div class="eyebrow">Appendix / Running demo · Optional</div>
+<div class="eyebrow">04 / What we have verified</div>
 
-## Who calls whom in a paid API request?
+## Local evidence has a clear boundary.
 
-<div class="arch-row"><div class="node"><b>Agent / client</b><p>Checks quote and budget<br>Signs the payment</p></div><div class="arrow">⇄</div><div class="node"><b>Gateway / API</b><p>Returns 402 and report<br>Calls the facilitator</p></div><div class="arrow">⇄</div><div class="node"><b>Facilitator</b><p>Checks authorization<br>Submits to Solana</p></div></div>
-<div class="demo-steps"><div>1 · Client ↔ gateway: GET → 402 terms → signed retry.</div><div>2 · Gateway ↔ configured facilitator: exact verifies then settles; upto settles deposit then charge.</div><div>3 · Facilitator ↔ Solana: submit and confirm the transaction.</div><div>4 · Gateway → client: paid JSON + PAYMENT-RESPONSE.</div></div>
-<div class="sources">Current demo architecture: <a href="../../demo-payment-architecture.md">roles and request sequences</a> · <a href="../../../examples/gateway/src/app.ts">gateway middleware</a> · <a href="../../../examples/client/src/payment-tools.ts">agent payment tools</a><br>This slide describes the running exact / upto demo; the Issue #90 recovery path remains planned.</div>
+<div class="grid two">
+<div class="card"><h3>Verified locally</h3><p>402 advertises the official client-signed channel binding. Facilitator forwarding and durable stores have tests.</p></div>
+<div class="card"><h3>Still to verify</h3><p>Repeated paid calls, a complete claim and distribution, refunds, and live Devnet balances.</p></div></div>
+<div class="band">30 TypeScript payment tests passed; this is not a verified on-chain batch payout.</div>
+<div class="sources"><a href="../../../examples/gateway/test/batch-route.test.ts">Route test</a> · <a href="../../../examples/gateway/test/batch-store.test.ts">Gateway storage test</a> · <a href="../../../examples/client/test/batch-client-store.test.ts">Client storage test</a><br>Results are local; retain the test output and commit for the presentation.</div>
+
+---
+
+<!-- _class: paper -->
+
+<div class="eyebrow">05 / Next resilience question</div>
+
+## What if the facilitator is offline at Closing?
+
+<div class="grid three">
+<div class="card"><div class="number">01</div><h3>Work served</h3><p>Merchant holds a valid, unsettled voucher.</p></div>
+<div class="card"><div class="number">02</div><h3>Client closes</h3><p>The channel enters Closing and a grace period begins.</p></div>
+<div class="card"><div class="number">03</div><h3>Claim blocked</h3><p>At the pinned baseline, ordinary settle accepts Open only.</p></div></div>
+<div class="band">Issue #90 proposes merchant submission before the deadline. It remains a separate design.</div>
+<div class="sources"><a href="https://github.com/solana-foundation/payment-channels/issues/90">Issue #90</a> · <a href="https://github.com/solana-foundation/payment-channels/blob/3ffa4d6728ad88e4a9667a76ad9ccd68a302c696/program/payment_channels/src/instructions/settle.rs">Pinned Open-only settle</a> · <a href="ARCHITECTURE.md#design-focus-issue-90-planned">Our proposed experiment</a><br>Recheck upstream status before presenting. No recovery claim is made for this demo.</div>
+
+---
+
+<div class="eyebrow">06 / Next milestone</div>
+
+## Prove the whole money path.
+
+<div class="roadmap"><div class="card"><span class="tag">TODAY · LOCAL SDK INTEGRATION</span><h3>Batch route + stores</h3><p>402, forwarding, and persistence tests pass. On-chain payout remains unverified.</p></div><div class="steps"><div class="step"><span>01</span> Fund a Devnet channel</div><div class="step"><span>02</span> Make repeated paid calls</div><div class="step"><span>03</span> Confirm claim and distribution</div><div class="step"><span>04</span> Reconcile token balances</div></div></div>
+<div class="band">After that, test Closing recovery separately against Issue #90.</div>
+<div class="sources"><a href="../../../examples/gateway/README.md#batch-settlement-payment-flow">Runbook</a> · <a href="ARCHITECTURE.md#demonstration-and-acceptance-criteria">Recovery validation plan</a><br>Exact, upto, and auth-capture remain in the wider project scope.</div>
+
+---
+
+<div class="eyebrow">Appendix / Batch request · Optional</div>
+
+## What does one paid request do?
+
+<div class="demo-steps"><div>1 · Client GET → gateway returns 402 with batch channel terms.</div><div>2 · Client checks budget and channel, signs a cumulative voucher, retries.</div><div>3 · Gateway verifies through facilitator and stores accepted state.</div><div>4 · Gateway returns paid JSON; worker claims and distributes later.</div></div>
+<div class="band">The model chooses the tool. Application code owns the key and spending limit.</div>
+<div class="sources"><a href="../../demo-payment-architecture.md">Request architecture</a> · <a href="../../../examples/client/src/batch-client.ts">Client</a> · <a href="../../../examples/gateway/src/app.ts">Gateway</a><br>Step 4 describes the wired path, not an observed full payout.</div>
 
 ---
 
@@ -187,13 +185,11 @@ style: |
 
 <div class="eyebrow">Appendix / Q&amp;A · Optional</div>
 
-## How does this demo use x402?
+## Which parts are official, local, and planned?
 
 <div class="grid two">
-<div class="card"><h3>Does the agent need a wallet?</h3><p>Yes. The app signs with a local Solana keypair. The model calls a paid API tool; it never receives the key.</p></div>
-<div class="card"><h3>Which network do we use?</h3><p>The x402 FAQ lists Base and Solana. This demo uses Solana Devnet USDC; it has no EVM payment path.</p></div>
-<div class="card"><h3>What does the facilitator do?</h3><p>It verifies and submits payments. This demo runs a separate local facilitator that sponsors transactions.</p></div>
-<div class="card"><h3>Can x402 handle fiat or cards?</h3><p>Not natively. Third-party gateways can add those rails; this demo does not.</p></div>
-</div>
-
-<div class="sources">Official answers: <a href="https://docs.x402.org/faq">x402 FAQ</a> · <a href="https://docs.x402.org/core-concepts/facilitator">Facilitator</a><br>Demo implementation: <a href="../../../examples/client/src/agent.ts">agent</a> · <a href="../../../examples/client/src/payment-tools.ts">paid API tools</a> · <a href="../../../examples/gateway/src/run-facilitator.ts">local facilitator</a><br>Further reading: <a href="https://x402.org/wp-content/uploads/sites/10/2026/06/x402-whitepaper.pdf">x402 whitepaper</a> · <a href="https://github.com/x402-foundation/x402/tree/main/specs">x402 specifications</a></div>
+<div class="card"><h3>Official binding</h3><p>The opt-in batch route uses @x402/svm and the Foundation channel program.</p></div>
+<div class="card"><h3>Local evidence</h3><p>HTTP challenge, facilitator forwarding, durable stores, and TypeScript tests.</p></div>
+<div class="card"><h3>Unverified outcome</h3><p>Complete on-chain batch payout and Devnet balance reconciliation.</p></div>
+<div class="card"><h3>Separate proposal</h3><p>Issue #90 Closing recovery in an independent Anchor experiment.</p></div></div>
+<div class="sources"><a href="../../../examples/gateway/README.md#batch-settlement-payment-flow">Demo guide</a> · <a href="ARCHITECTURE.md">Recovery design</a></div>

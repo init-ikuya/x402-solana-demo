@@ -82,40 +82,40 @@ style: |
 ---
 
 
-<div class="eyebrow">Work in progress · Solana School / Demo Day</div>
-<div class="cover-layout"><div><h1>Hold.<br>Capture.<br><span class="accent">Refund.</span></h1><p class="cover-sub">Designing auth-capture<br>for x402 on Solana.</p></div><div class="cover-flow"><div class="cover-step"><span>01</span> Agree on a spending ceiling</div><div class="cover-step"><span>02</span> Pay for the completed work</div><div class="cover-step"><span>03</span> Release or refund funds</div><p class="small muted">Independent Anchor prototype proposal<br>No claim of completed implementation</p></div></div>
-<p class="date">October <span>19 or 21</span>, 2026 <span>· Date TBD · Draft</span></p>
+<div class="eyebrow">Main topic · Solana School / Demo Day</div>
+<div class="cover-layout"><div><h1>Hold.<br>Capture.<br><span class="accent">Refund.</span></h1><p class="cover-sub">An experimental auth-capture<br>escrow flow for x402 on Solana.</p></div><div class="cover-flow"><div class="cover-step"><span>01</span> Agree on a spending ceiling</div><div class="cover-step"><span>02</span> Pay for the completed work</div><div class="cover-step"><span>03</span> Release or refund funds</div><p class="small muted">Independent Anchor prototype<br>Locally tested escrow flow</p></div></div>
+<p class="date">Demo Day <span>· Presentation draft</span></p>
 <div class="sources">Lifecycle concept: <a href="https://github.com/x402-foundation/x402/blob/cb0ec5bca0a5b21860a36bb60f34433c2e8e0d71/specs/schemes/auth-capture/scheme_auth_capture.md">generic auth-capture specification</a> · <a href="ARCHITECTURE.md">Our Solana design</a></div>
 
 ---
 
 <!-- _class: paper -->
 
-<div class="eyebrow">01 / Solana auth-capture · Proposed design</div>
+<div class="eyebrow">01 / Solana auth-capture · Escrow prototype</div>
 
-## A defined lifecycle.<br>A Solana binding to investigate.
+## A defined lifecycle.<br>A local Solana implementation.
 
 <div class="grid two"><div class="card"><h3>What is specified</h3><p>Hold, capture, cancel, refund,<br>and client recovery after a deadline. [1]</p></div><div class="card"><h3>What we found</h3><p>No Solana auth-capture specification or SDK implementation in the reviewed official tree. [2, 3]</p></div></div>
-<div class="band">Contribution target: a documented Solana binding and a tested Anchor prototype.</div>
+<div class="band">Built locally: Anchor hold, capture, release, refund, and payer reclaim.</div>
 <p class="small muted" style="margin-top:20px">This is a bounded search result, not a claim that nobody else is working on it.</p>
 <div class="sources">[1] <a href="https://github.com/x402-foundation/x402/blob/cb0ec5bca0a5b21860a36bb60f34433c2e8e0d71/specs/schemes/auth-capture/scheme_auth_capture.md">Generic specification</a> · [2] <a href="https://github.com/x402-foundation/x402/tree/cb0ec5bca0a5b21860a36bb60f34433c2e8e0d71/specs/schemes/auth-capture">Scheme files</a> · [3] <a href="https://github.com/x402-foundation/x402/tree/cb0ec5bca0a5b21860a36bb60f34433c2e8e0d71/typescript/packages/mechanisms/svm/src">SVM SDK source</a><br>x402 baseline cb0ec5b. Independent experimental binding, not official SVM compatibility.</div>
 
 ---
 
-<div class="eyebrow">02 / Solana auth-capture · Proposed design</div>
+<div class="eyebrow">02 / Solana auth-capture · Escrow prototype</div>
 
 ## Who may move which funds?
 
-<div class="arch-row"><div class="node"><b>Agent / client</b><p>Sets budget<br>Signs hold funding</p></div><div class="arrow">→</div><div class="node"><b>Gateway / merchant</b><p>Performs task<br>Signs capture and refund</p></div><div class="arrow">→</div><div class="node"><b>Facilitator</b><p>Sponsors transaction fees<br>Relays signed operations</p></div></div>
+<div class="arch-row"><div class="node"><b>Agent / client</b><p>Checks budget<br>Signs hold funding</p></div><div class="arrow">→</div><div class="node"><b>Gateway / merchant</b><p>Performs task<br>Signs capture and refund</p></div><div class="arrow">→</div><div class="node"><b>Facilitator</b><p>Sponsors fees<br>Relays in-request transactions</p></div></div>
 <div class="chain-links"><div>↓ direct reclaim</div><div>↓ authorized operations</div><div>↓ relay</div></div>
 <div class="node chain"><b>Anchor program + payment PDA + hold vault</b><p>Validate signatures, deadlines, operation sequence, and amounts</p></div>
 <div class="band">The facilitator cannot replace payer or merchant authorization.</div>
-<p class="small muted" style="margin-top:18px">Current demo: the model calls a paid API tool; application code checks the budget and signs. Auth-capture support is planned.</p>
-<div class="sources">Proposed Solana signer model: <a href="ARCHITECTURE.md#actors-and-trust-boundaries">Our architecture</a> · Current <a href="../../../examples/client/src/payment-tools.ts">paid API tools</a><br>Authority and refund-funding requirements: <a href="https://github.com/x402-foundation/x402/blob/cb0ec5bca0a5b21860a36bb60f34433c2e8e0d71/specs/schemes/auth-capture/scheme_auth_capture.md#network-requirements">generic specification</a>. Auth-capture is not implemented.</div>
+<p class="small muted" style="margin-top:18px">Later refunds and payer reclaim use direct signed CLI transactions. The model never receives keys.</p>
+<div class="sources">Signer model: <a href="ARCHITECTURE.md#actors-and-trust-boundaries">architecture</a> · <a href="../../../examples/client/src/payment-tools.ts">paid API tools</a><br>Authority and refund-funding requirements: <a href="https://github.com/x402-foundation/x402/blob/main/specs/schemes/auth-capture/scheme_auth_capture.md#network-requirements">generic specification</a>.</div>
 
 ---
 
-<div class="eyebrow">03 / Solana auth-capture · Proposed design</div>
+<div class="eyebrow">03 / Solana auth-capture · Implemented request path</div>
 
 ## Hold first. Finalize after the task.
 
@@ -127,36 +127,36 @@ style: |
 
 <!-- _class: paper -->
 
-<div class="eyebrow">04 / Solana auth-capture · Proposed design</div>
+<div class="eyebrow">04 / Solana auth-capture · Accounting</div>
 
 ## Release and refund use different money.
 
-<div class="grid three"><div class="card"><div class="number">1.0</div><h3>Hold</h3><p>Client → hold vault</p></div><div class="card"><div class="number">0.3 / 0.7</div><h3>Capture / release</h3><p>Vault → merchant / client</p></div><div class="card"><div class="number">0.1</div><h3>Later refund</h3><p>Merchant wallet → client</p></div></div>
+<div class="grid three"><div class="card"><div class="number">1000</div><h3>Hold</h3><p>Client → hold vault</p></div><div class="card"><div class="number">300 / 700</div><h3>Capture / release</h3><p>Vault → merchant / client</p></div><div class="card"><div class="number">100</div><h3>Later refund</h3><p>Merchant wallet → client</p></div></div>
 <div class="band">Refunds require merchant consent and liquidity; they do not restore capture capacity.</div>
-<p class="small muted" style="margin-top:20px">After the example: client has recovered 0.8, merchant retains 0.2, hold is empty.<br>Illustrative test-token amounts. Zero protocol fees; SOL network fees are separate.</p>
-<div class="sources">Our accounting and funding choice: <a href="ARCHITECTURE.md#proposed-accounts-and-accounting">architecture</a><br>Refund funding is explicitly a binding requirement: <a href="https://github.com/x402-foundation/x402/blob/cb0ec5bca0a5b21860a36bb60f34433c2e8e0d71/specs/schemes/auth-capture/scheme_auth_capture.md#network-requirements">generic specification</a>. These are planned example balances.</div>
+<p class="small muted" style="margin-top:20px">After the example: client recovered 800 units, merchant retains 200, hold is empty.<br>Atomic USDC units (1000 = 0.001 USDC). Zero protocol fees; SOL network fees are separate.</p>
+<div class="sources">Accounting: <a href="ARCHITECTURE.md#accounts-and-accounting">architecture</a> · <a href="../../../programs/anchoring-payment-channels/tests/test_auth_capture.rs">LiteSVM tests</a><br>Refund funding is a binding requirement: <a href="https://github.com/x402-foundation/x402/blob/main/specs/schemes/auth-capture/scheme_auth_capture.md#network-requirements">generic specification</a>. Amounts are illustrative atomic units.</div>
 
 ---
 
 <!-- _class: paper -->
 
-<div class="eyebrow">05 / Solana auth-capture · Proposed design</div>
+<div class="eyebrow">05 / Solana auth-capture · Local evidence</div>
 
 ## Test the lifecycle, not just a transfer.
 
 <div class="checks"><div class="check"><b>01 · Authority</b><p>Reject wrong signers and changed<br>recipient, mint, or token accounts.</p></div><div class="check"><b>02 · Accounting</b><p>Bound captures by the hold;<br>bound refunds by captured funds.</p></div><div class="check"><b>03 · Time and replay</b><p>Test deadline boundaries,<br>duplicate funding and operations.</p></div><div class="check"><b>04 · Recovery</b><p>Test restart, timeout, abandonment,<br>and insufficient refund liquidity.</p></div></div>
 <div class="band">A failed transfer must not advance the payment counters.</div>
-<div class="sources">Planned acceptance criteria: <a href="ARCHITECTURE.md#acceptance-criteria-and-demo-evidence">Our validation plan</a><br>No completed payment tests or measured results are claimed.</div>
+<div class="sources">Local evidence: <a href="../../../programs/anchoring-payment-channels/tests/test_auth_capture.rs">LiteSVM tests</a> · <a href="../../../examples/gateway/test/anchor-auth-capture.integration.test.ts">HTTP integration test</a><br>Live Devnet balance reconciliation remains unverified.</div>
 
 ---
 
-<div class="eyebrow">06 / Solana auth-capture · Proposed design</div>
+<div class="eyebrow">06 / Solana auth-capture · Scope</div>
 
 ## Start with escrow.<br>Track the remaining coverage.
 
-<div class="roadmap"><div class="card"><span class="tag">TODAY · AUTH-CAPTURE DESIGN</span><h3>Anchor upto prototype</h3><p>Single-request escrow exists.<br>Auth-capture is still planned.</p></div><div class="steps"><div class="step"><span>01</span> Specify Solana terms and authority</div><div class="step"><span>02</span> Hold, capture, void, reclaim</div><div class="step"><span>03</span> Merchant-funded refund + recovery</div><div class="step"><span>04</span> Add direct charge flow separately</div></div></div>
-<div class="band">An escrow demo is the first milestone, not full scheme completion.</div>
-<div class="sources"><a href="../../../programs/anchoring-payment-channels/src/lib.rs">Current program</a> · <a href="ARCHITECTURE.md#binding-and-implementation-milestones">Our roadmap</a> · <a href="https://github.com/x402-foundation/x402/blob/cb0ec5bca0a5b21860a36bb60f34433c2e8e0d71/specs/schemes/auth-capture/scheme_auth_capture.md">Scheme flows</a><br>Separate alternative presentation: <a href="../closing-settlement/slides.md">Issue #90</a>. Recheck public implementations before presenting.<br>Further reading: <a href="https://x402.org/wp-content/uploads/sites/10/2026/06/x402-whitepaper.pdf">x402 whitepaper</a> · <a href="https://github.com/x402-foundation/x402/tree/main/specs">x402 specifications</a></div>
+<div class="roadmap"><div class="card"><span class="tag">TODAY · LOCAL ESCROW</span><h3>Working prototype</h3><p>Anchor program, HTTP adapter, client tool, and direct operation CLI.</p></div><div class="steps"><div class="step"><span>✓</span> Hold, capture, void, reclaim</div><div class="step"><span>✓</span> Merchant-funded refund</div><div class="step"><span>→</span> Verify live Devnet balances</div><div class="step"><span>→</span> Specify direct charge separately</div></div></div>
+<div class="band">Experimental escrow binding; no official SVM interoperability claim.</div>
+<div class="sources"><a href="../../../programs/anchoring-payment-channels/src/auth_capture.rs">Anchor program</a> · <a href="ARCHITECTURE.md#binding-and-implementation-milestones">Roadmap</a> · <a href="https://github.com/x402-foundation/x402/blob/main/specs/schemes/auth-capture/scheme_auth_capture.md">Scheme flows</a><br>The separate <a href="../closing-settlement/slides.md">batch settlement track</a> does not define this binding.</div>
 
 ---
 
@@ -165,8 +165,8 @@ style: |
 ## Who calls whom in a paid API request?
 
 <div class="arch-row"><div class="node"><b>Agent / client</b><p>Checks quote and budget<br>Signs the payment</p></div><div class="arrow">⇄</div><div class="node"><b>Gateway / API</b><p>Returns 402 and report<br>Calls the facilitator</p></div><div class="arrow">⇄</div><div class="node"><b>Facilitator</b><p>Checks authorization<br>Submits to Solana</p></div></div>
-<div class="demo-steps"><div>1 · Client ↔ gateway: GET → 402 terms → signed retry.</div><div>2 · Gateway ↔ configured facilitator: exact verifies then settles; upto settles deposit then charge.</div><div>3 · Facilitator ↔ Solana: submit and confirm the transaction.</div><div>4 · Gateway → client: paid JSON + PAYMENT-RESPONSE.</div></div>
-<div class="sources">Current demo architecture: <a href="../../demo-payment-architecture.md">roles and request sequences</a> · <a href="../../../examples/gateway/src/app.ts">gateway middleware</a> · <a href="../../../examples/client/src/payment-tools.ts">agent payment tools</a><br>This slide describes the running exact / upto demo; auth-capture remains a proposed design.</div>
+<div class="demo-steps"><div>1 · Client ↔ gateway: GET → auth-capture 402 → signed hold retry.</div><div>2 · Gateway ↔ facilitator: confirm payer hold before the handler.</div><div>3 · Merchant ↔ facilitator: capture 300 and release 700 atomically.</div><div>4 · Gateway → client: paid JSON + PAYMENT-RESPONSE and payment ID.</div></div>
+<div class="sources">Demo: <a href="demo.md">runbook</a> · <a href="../../../examples/gateway/src/app.ts">gateway middleware</a> · <a href="../../../examples/client/src/payment-tools.ts">agent payment tools</a><br>Later refunds use a direct CLI. Local HTTP tests use simulated RPC.</div>
 
 ---
 

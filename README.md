@@ -1,36 +1,38 @@
 # x402-solana-demo
 
-An experimental Anchor reimplementation of [solana-foundation/payment-channels](https://github.com/solana-foundation/payment-channels), with additional experiments implementing future work discussed in the upstream issue.
+An experimental x402 payment demo on Solana. It combines official SDK routes with independent Anchor escrow bindings. A separate [payment-channels](https://github.com/solana-foundation/payment-channels) Issue #90 design remains reference work.
 
-This project is being developed for Demo Day at [Solana School: Fall Class](https://luma.com/jy1g8k90). The [auth-capture presentation draft](docs/topics/auth-capture/slides.md) lives in this repository alongside the implementation.
+This project is being developed for Demo Day at [Solana School: Fall Class](https://luma.com/jy1g8k90). The main [auth-capture presentation](docs/topics/auth-capture/slides.md), [speaker script](docs/topics/auth-capture/script.md), and [browser demo runbook](docs/topics/auth-capture/demo.md) live alongside the implementation.
 
 ## Status
 
-The Anchor program implements a single-request `upto` escrow channel with `open`, `settle`, and expired `refund`, covered by a LiteSVM test. The TypeScript `exact` and `upto` examples connect the [gateway and local facilitator](examples/gateway/README.md) to a [budget-limited payment client, refund CLI, and local LLM agent](examples/client/README.md). The `upto` path calls this repository's program; the payer can send an expired refund without the facilitator. HTTP integration tests use simulated RPC; live devnet settlement remains unverified.
+The HTTP demo also has an opt-in `batch-settlement` route backed by `@x402/svm` 2.28.0 and the Solana Foundation payment-channels program. The client reuses a channel, the gateway stores cumulative vouchers and redeems them periodically, and a batch refund command closes unused escrow. This is separate from the proposed custom Anchor Issue #90 closing-recovery experiment, which remains unimplemented. Local persistence and unit tests are present; live devnet settlement has not been verified.
 
-The paid demo resource is a clearly fictional Donald Trump "insider information" parody, presented as an invented private briefing note with a distinct report ID per call. `exact` serves it at `/api/trump-insider`; opt-in `upto` serves the same format at `/api/trump-insider/upto`. The agent includes the API's report IDs and headlines in its answer.
+The Anchor program implements a single-request `upto` channel and a separate experimental `auth-capture` escrow payment. The auth-capture route confirms a 1000-unit hold before the paid API, then captures 300 and releases 700 atomically; a direct operation CLI supports merchant-funded refunds and payer reclaim. LiteSVM and simulated-RPC HTTP tests cover the local path. The TypeScript `exact`, `upto`, opt-in `batch-settlement`, and `auth-capture` examples connect the [gateway and local facilitator](examples/gateway/README.md) to a [budget-limited client and local LLM agent](examples/client/README.md). The batch path uses the official SVM binding. Live Devnet settlement remains unverified.
+
+The paid demo resource is a clearly fictional Donald Trump "insider information" parody, presented as an invented private briefing note with a distinct report ID per call. `exact` serves it at `/api/trump-insider`; opt-in `upto`, `batch-settlement`, and `auth-capture` serve the same format at their matching suffix routes. The agent includes the API's report IDs and headlines in its answer.
 
 ## Project goals
 
-- Reimplement the upstream payment channel behavior using Anchor, with tests covering the channel lifecycle and settlement rules.
-- Explore additional features identified as future work in the upstream issue. The specific issue and feature scope are pending confirmation.
+- Implement and test independent Anchor escrow bindings for `upto` and the auth-capture lifecycle.
+- Keep the payment-channels Issue #90 Closing recovery design separate from the running auth-capture route.
 - Document implementation choices, differences from upstream, and experiment results for the Demo Day presentation.
 - Build a TypeScript HTTP gateway and a TypeScript AI agent that demonstrates LLM tool use with payment authorization, paid API access, settlement, and refunds. See the [demo scope](docs/ideas.md#demo-scope-and-implementation-languages).
-- Implement all four x402 schemes in stages: `exact`, `batch-settlement`, `upto`, and `auth-capture`. The [implementation scope](docs/ARCHITECTURE.md#four-scheme-implementation-scope-planned) records specifications, compatibility boundaries, and acceptance criteria. The `exact` example and this repository's Anchor-backed `upto` HTTP path are locally tested; `batch-settlement` and `auth-capture` remain unimplemented.
+- Implement all four x402 schemes in stages: `exact`, `batch-settlement`, `upto`, and `auth-capture`. The [implementation scope](docs/ARCHITECTURE.md#four-scheme-implementation-scope-planned) records specifications, compatibility boundaries, and acceptance criteria. The official SDK batch route is wired into the HTTP demo; the proposed custom Anchor Closing recovery remains unimplemented; an escrow-only auth-capture prototype is integrated locally.
 
-The upstream implementation uses Pinocchio and provides an on-chain settlement layer for x402 and MPP payments. This repository is an independent educational experiment, not an official upstream implementation.
+The upstream payment-channels implementation uses Pinocchio and provides an on-chain settlement layer for x402 and MPP payments. This repository's auth-capture binding is an independent educational experiment, not an official upstream implementation.
 
 ## Architecture
 
 See [ARCHITECTURE.md](docs/ARCHITECTURE.md) for the planned system architecture, Solana account relationship diagram, payment flow, and currently implemented accounts.
 
-For the running demo, see the [client–gateway–facilitator architecture](docs/demo-payment-architecture.md), including the `exact` and `upto` request sequences.
+For the running demo, see the [client–gateway–facilitator architecture](docs/demo-payment-architecture.md), including the auth-capture request sequence.
 
-The [auth-capture design](docs/topics/auth-capture/ARCHITECTURE.md) and [presentation](docs/topics/auth-capture/slides.md) explore a proposed Solana escrow and refund lifecycle. The [Issue #90 presentation](docs/topics/closing-settlement/slides.md) remains an alternative focus within the same four-scheme scope.
+The [auth-capture presentation](docs/topics/auth-capture/slides.md) is the Demo Day focus. A local [browser front end](examples/client/demo/index.html) displays the real agent's tool choice, x402 exchange, paid report, and answer, with a samurai-styled buyer and satirical provider. It explains the locally tested escrow binding and its limits. The [batch-settlement presentation](docs/topics/closing-settlement/slides.md) and proposed [Issue #90 Closing recovery](docs/topics/closing-settlement/ARCHITECTURE.md) remain separate reference material.
 
 ## Upstream
 
-The original project and source of reference is [solana-foundation/payment-channels](https://github.com/solana-foundation/payment-channels). This repository explores an Anchor reimplementation and selected future-work items discussed in upstream issues.
+The batch channel reference is [solana-foundation/payment-channels](https://github.com/solana-foundation/payment-channels). The auth-capture escrow route is a simpler independent binding based on the [generic x402 scheme](https://github.com/x402-foundation/x402/blob/main/specs/schemes/auth-capture/scheme_auth_capture.md).
 
 ## Getting started
 
@@ -78,7 +80,7 @@ Assets:
 - `anchoring_payment_channels.json`: Anchor IDL.
 - `anchoring_payment_channels.ts` and `anchoring_payment_channels_errors.ts`: TypeScript IDL types, not a generated SDK.
 - `architecture-submission.pdf`: Architecture submission, rendered from [`docs/architecture-submission.md`](docs/architecture-submission.md) during CI.
-- `closing-settlement-slides.pdf` and `auth-capture-slides.pdf`: Two presentation alternatives, rendered from their Markdown sources during CI.
+- `auth-capture-slides.pdf`: Main presentation; `closing-settlement-slides.pdf`: batch-settlement reference track. Both render from Markdown during CI.
 - `build-info.json`: Commit, source ref, workflow run, and tool versions.
 - `SHA256SUMS.txt`: Checksums; verify downloaded files with `sha256sum --check SHA256SUMS.txt`.
 
@@ -107,10 +109,10 @@ Only these public files are packaged; deployment keypairs are excluded. The lint
 
 Example applications:
 
-- `examples/gateway/`: TypeScript x402 `exact` and repository-backed `upto` service and local facilitator. See its [setup guide](examples/gateway/README.md).
+- `examples/gateway/`: TypeScript x402 `exact`, repository-backed `upto` and auth-capture escrow, and official SVM batch service and local facilitator. See its [setup guide](examples/gateway/README.md).
 - `examples/client/`: TypeScript payment CLI, per-process spending controls, and a model-driven agent with a local Ollama adapter.
 
-The `exact` route uses the official x402 SVM SDK and does not need this Anchor program. The `upto` route uses this repository's Anchor program and local facilitator. Its Solana payload is not interoperable with the official SVM `upto` binding, which fixes a different program ID and instruction format.
+The `exact` and `batch-settlement` routes use the official x402 SVM SDK and do not need this Anchor program. The `upto` and experimental escrow-only `auth-capture` routes use this repository's Anchor program and local facilitator. Its Solana payload is not interoperable with the official SVM `upto` binding, which fixes a different program ID and instruction format.
 
 The existing example is runnable from the repository root. The core settlement program is independent of these applications and of any AI provider.
 

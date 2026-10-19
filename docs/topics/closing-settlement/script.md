@@ -1,84 +1,84 @@
-# Fall Class — Issue #90 speaker script
+# Batch settlement on Solana — Demo Day speaker script
 
-A seven-slide English presentation designed for a four-minute slot, including a planned 60-second video of the current `exact` / `upto` demo. Demo Day is tentatively October 19 or 21, 2026. The four-scheme implementation goal remains, while this talk focuses on the proposed Issue #90 recovery path. The Issue #83 alternative was dropped.
+A separate seven-slide English batch-settlement reference presentation for a four-minute slot. The one-minute segment is a planned batch-route walkthrough; no recording or end-to-end payout evidence exists yet. The official `@x402/svm` 2.28.0 route is integrated locally. Issue #90 is a follow-up design, not part of the running route. The [auth-capture deck](../auth-capture/slides.md) is the selected Demo Day presentation.
 
 ## Timing
 
 | Slide | Content | Seconds |
 | --- | --- | --- |
 | 1 | Introduction | 15 |
-| 2 | Context | 20 |
-| 3 | Actors | 30 |
-|  | Current demo video | 60 |
-| 4 | Problem | 25 |
-| 5 | Proposed route | 30 |
-| 6 | Validation | 25 |
-| 7 | Progress | 15 |
+| 2 | Why batch? | 20 |
+| 3 | Payment lifecycle | 30 |
+|  | Batch route walkthrough | 60 |
+| 4 | Repository implementation | 25 |
+| 5 | Verified evidence | 30 |
+| 6 | Closing risk and Issue #90 | 25 |
+| 7 | Next milestone | 15 |
 
-Total: 160 seconds of narration + 60 seconds of demo video + 20 seconds for transitions = 240 seconds. These are targets, not measured reading or video times.
+Total: 160 seconds of narration + 60 seconds of walkthrough + 20 seconds for transitions = 240 seconds. Durations have not been measured.
 
 ## Slide 1 — Introduction
 
-> Hi everyone. This project explores x402 payments on Solana. Today I will focus on Issue #90: recovering a merchant payment when a channel is closing and the facilitator is offline. The recovery change is still a design.
+> Hi everyone. This project adds batch settlement to an x402 paid API on Solana. One funded channel can support repeated requests with client-signed cumulative vouchers. I will show what is implemented and what still needs an end-to-end payout test.
 
-Basis: [Current program](../../../programs/anchoring-payment-channels/src/lib.rs) and our [design and validation plan](ARCHITECTURE.md#design-focus-issue-90-planned). Do not present planned work as an implemented result.
+Basis: [SVM specification](https://github.com/x402-foundation/x402/blob/cb0ec5bca0a5b21860a36bb60f34433c2e8e0d71/specs/schemes/batch-settlement/scheme_batch_settlement_svm.md) and our [gateway route](../../../examples/gateway/src/app.ts).
 
-## Slide 2 — Context
+## Slide 2 — Why batch?
 
-> In batch settlement, the client signs cumulative vouchers while the merchant serves requests. The merchant redeems the latest voucher later. Solana specifications and SDK code already exist; the Foundation reports its channel program live on mainnet. Our target is a particular recovery gap.
+> With exact, each paid request is a transfer. Batch instead funds a channel once. Each later request signs a higher cumulative total, and the merchant retains the latest accepted voucher. Voucher acceptance does not itself move tokens; the claim and eventual distribution happen later.
 
-Sources: [SVM batch-settlement specification](https://github.com/x402-foundation/x402/blob/cb0ec5bca0a5b21860a36bb60f34433c2e8e0d71/specs/schemes/batch-settlement/scheme_batch_settlement_svm.md), [SDK](https://github.com/x402-foundation/x402/blob/cb0ec5bca0a5b21860f34433c2e8e0d71/typescript/packages/mechanisms/svm/src/batch-settlement/README.md), and [Foundation README](https://github.com/solana-foundation/payment-channels/blob/3ffa4d6728ad88e4a9667a76ad9ccd68a302c696/README.md). Mainnet operation is the provider's report, not our independent verification.
+Basis: [official SDK guide](https://github.com/x402-foundation/x402/blob/cb0ec5bca0a5b21860a36bb60f34433c2e8e0d71/typescript/packages/mechanisms/svm/src/batch-settlement/README.md). This is a protocol comparison, not a measured cost or speed claim.
 
-## Slide 3 — Actors
+## Slide 3 — Payment lifecycle
 
-> Our running demo already has an agent, gateway, and local facilitator for `exact` and a custom `upto` path. The client application controls signing and budgets. The proposed batch path adds a long-lived channel: the gateway stores the latest voucher, while the facilitator sponsors transactions and holds lifecycle authority. The merchant would have a separate route to submit a voucher when the facilitator is unavailable. First, here is the current demo.
+> The agent's application checks the budget and signs; the model never receives its key. The gateway advertises a batch requirement in HTTP 402. The client opens or reuses a channel and retries with a cumulative voucher. The gateway accepts the request and stores the channel state. A later worker asks the facilitator to claim and distribute funds.
 
-Sources: [Issue #90](https://github.com/solana-foundation/payment-channels/issues/90), [current `settle` state restriction](https://github.com/solana-foundation/payment-channels/blob/3ffa4d6728ad88e4a9667a76ad9ccd68a302c696/program/payment_channels/src/instructions/settle.rs), [`settle_and_seal`](https://github.com/solana-foundation/payment-channels/blob/3ffa4d6728ad88e4a9667a76ad9ccd68a302c696/program/payment_channels/src/instructions/settle_and_seal.rs), and [distribution and closure instructions](https://github.com/solana-foundation/payment-channels/blob/3ffa4d6728ad88e4a9667a76ad9ccd68a302c696/README.md#instructions). The direct-submission worker and outage demo are [our design](ARCHITECTURE.md#design-focus-issue-90-planned).
+Basis: [client implementation](../../../examples/client/src/batch-client.ts), [gateway setup](../../../examples/gateway/src/main.ts), and [facilitator setup](../../../examples/gateway/src/run-facilitator.ts). The payout sequence is wired but not verified end to end.
 
-## 60-second video cue — current demo, not Issue #90 recovery
+## 60-second batch route walkthrough — planned presentation asset
 
-Play a recorded run of the existing `exact` or repository-specific `upto` flow after Slide 3. Enable `PAYMENT_DEMO_TRACE=1` to show the initial GET, the decoded 402 quote, the signed retry with its payload redacted, the decoded settlement header, and the paid JSON preview. Label simulated RPC or LiteSVM footage as local testing; do not present it as a confirmed Devnet transfer or as the planned Issue #90 recovery. The video is a planned presentation asset and has not been recorded or timed. If it is unavailable, use this minute for a clearly labeled walkthrough of the same current flow.
+Show the batch route's local 402 test and the implementation in four short cuts: (1) `GET /api/trump-insider/batch` returns a `batch-settlement` requirement with `voucherSigner=client` and `assetTransferMethod=channel`; (2) the client selects the requirement, opens or reuses its stored channel, and signs the cumulative voucher; (3) the gateway and facilitator persist channel and pending state; (4) the redemption worker has periodic `redeem()` and on-closing triggers. Show test names/results on screen and label this **local route and storage evidence**. Do not show a successful paid response, claim confirmation, token payout, or Devnet transaction unless separately recorded and verified. The video has not been recorded or timed. If it is unavailable, use the same minute for a live slide/code walkthrough with the same scope label. Redact keys, signed payloads, and private configuration.
 
-## Slide 4 — Problem
+## Slide 4 — Repository implementation
 
-> Suppose the merchant served requests and holds a valid voucher. The client requests closure, putting the channel into Closing. Normal settlement rejects that state. Cooperative settlement requires the facilitator signature. If it is offline, the merchant cannot independently record the payment during the grace period.
+> This is the official SVM batch binding, enabled as an opt-in API route. The client persists channel allocations. The gateway persists accepted vouchers and runs periodic redemption. The local facilitator stores its channel and pending transaction state. A refund command lets the client request closure for unused escrow.
 
-Sources: [Issue #90](https://github.com/solana-foundation/payment-channels/issues/90), [current `settle` state restriction](https://github.com/solana-foundation/payment-channels/blob/3ffa4d6728ad88e4a9667a76ad9ccd68a302c696/program/payment_channels/src/instructions/settle.rs), [`settle_and_seal`](https://github.com/solana-foundation/payment-channels/blob/3ffa4d6728ad88e4a9667a76ad9ccd68a302c696/program/payment_channels/src/instructions/settle_and_seal.rs), and [distribution and closure instructions](https://github.com/solana-foundation/payment-channels/blob/3ffa4d6728ad88e4a9667a76ad9ccd68a302c696/README.md#instructions). The direct-submission worker and outage demo are [our design](ARCHITECTURE.md#design-focus-issue-90-planned).
+Basis: [client store](../../../examples/client/src/batch-client.ts), [gateway store](../../../examples/gateway/src/batch-store.ts), [facilitator stores](../../../examples/gateway/src/batch-facilitator-store.ts), and [refund command](../../../examples/client/src/batch-refund.ts). This is the Foundation channel program, not this repository's custom Anchor `upto` program.
 
-## Slide 5 — Proposed route
+## Slide 5 — Verified evidence
 
-> Issue #90 proposes allowing ordinary settlement during Closing, strictly before the deadline. A merchant worker submits the stored voucher. The program still checks its signature, channel, expiry, and amount. Settlement records the claim but does not transfer tokens. Sealing and distribution happen later. An already sealed channel cannot be rescued.
+> Local tests verify that the batch endpoint advertises the expected official binding, that the gateway forwards it through the facilitator, and that channel stores survive reopening. Type checking and the payment test suite pass. We have not verified a complete deposit-to-distribution transaction sequence or live Devnet balances, so a successful payout is not yet a result.
 
-Sources: [Issue #90](https://github.com/solana-foundation/payment-channels/issues/90), [current `settle` state restriction](https://github.com/solana-foundation/payment-channels/blob/3ffa4d6728ad88e4a9667a76ad9ccd68a302c696/program/payment_channels/src/instructions/settle.rs), [`settle_and_seal`](https://github.com/solana-foundation/payment-channels/blob/3ffa4d6728ad88e4a9667a76ad9ccd68a302c696/program/payment_channels/src/instructions/settle_and_seal.rs), and [distribution and closure instructions](https://github.com/solana-foundation/payment-channels/blob/3ffa4d6728ad88e4a9667a76ad9ccd68a302c696/README.md#instructions). The direct-submission worker and outage demo are [our design](ARCHITECTURE.md#design-focus-issue-90-planned).
+Basis: [batch route test](../../../examples/gateway/test/batch-route.test.ts), [gateway store test](../../../examples/gateway/test/batch-store.test.ts), [client store test](../../../examples/client/test/batch-client-store.test.ts). Current evidence: 30 TypeScript tests passed locally; no on-chain batch payout assertion.
 
-## Slide 6 — Validation
+## Slide 6 — Closing risk and Issue #90
 
-> We plan paired tests of the baseline and modified program, just before, at, and after the deadline. Invalid signatures, excess amounts, and duplicate vouchers must still fail. We will also test distribution once, worker restarts, and uncertain transaction outcomes.
+> Batch introduces a delayed claim. If the client requests closure while the facilitator is unavailable, the merchant can hold a valid voucher without an independent way to record it during Closing. Issue #90 proposes a deadline-bounded merchant submission path. That is a separate Anchor experiment, not a feature of today's SDK demo.
 
-Basis: [Current program](../../../programs/anchoring-payment-channels/src/lib.rs) and our [design and validation plan](ARCHITECTURE.md#design-focus-issue-90-planned). Do not present planned work as an implemented result.
+Sources: [Issue #90](https://github.com/solana-foundation/payment-channels/issues/90), [Open-only settle at the pinned baseline](https://github.com/solana-foundation/payment-channels/blob/3ffa4d6728ad88e4a9667a76ad9ccd68a302c696/program/payment_channels/src/instructions/settle.rs), and [our design](ARCHITECTURE.md#design-focus-issue-90-planned). Recheck upstream status before presenting.
 
-## Slide 7 — Progress
+## Slide 7 — Next milestone
 
-> Today we have a single-request `upto` escrow prototype. Batch channel recovery is planned. The goal is a testable merchant fallback during Closing, not a claim of completed recovery. Thank you.
+> Next we need one full Devnet run: fund a channel, make repeated paid calls, verify the cumulative claim, close and distribute, and compare token balances. Then we can test Issue #90 against the canonical Closing behavior. The batch integration is in place; payout and recovery remain open evidence gaps. Thank you.
 
-Basis: [Current program](../../../programs/anchoring-payment-channels/src/lib.rs) and our [design and validation plan](ARCHITECTURE.md#design-focus-issue-90-planned). Do not present planned work as an implemented result.
+Basis: [gateway operations](../../../examples/gateway/README.md#batch-settlement-payment-flow) and [Issue #90 validation plan](ARCHITECTURE.md#demonstration-and-acceptance-criteria).
 
-## Optional demo architecture appendix — outside the timed talk
+## Optional architecture appendix — outside the timed talk
 
-The agent calls the gateway's paid API. The gateway returns the x402 quote, receives the signed retry, and calls its configured facilitator URL. For `exact`, the facilitator verifies and settles the payment. For `upto`, it confirms the deposit before the API runs and the final charge afterward. The facilitator submits to Solana; the gateway returns the paid report and settlement header. See the [current demo architecture](../../demo-payment-architecture.md). This appendix describes the running `exact` / `upto` routes, not the planned Issue #90 recovery route.
+The agent selects the batch paid API tool. Its application checks the quote and budget, persists the channel, and signs each cumulative voucher. The gateway advertises the 402 requirement, verifies through the local facilitator, and persists accepted channel state. A periodic worker invokes the official SDK channel manager to redeem. Claim recording and final token distribution are separate events. See the [three-party request sequence](../../demo-payment-architecture.md) and [gateway guide](../../../examples/gateway/README.md#batch-settlement-payment-flow).
 
 ## Optional FAQ appendix — outside the timed talk
 
-The app, not the model, holds the local Solana signing key. The model calls a paid API tool; application code checks the budget and signs. The official FAQ lists Base and Solana, while this demo uses Solana Devnet USDC. A separate local facilitator verifies and submits payments. Fiat conversion and card deposits are outside x402's native scope and outside this demo. Sources: [x402 FAQ](https://docs.x402.org/faq), [facilitator](https://docs.x402.org/core-concepts/facilitator), [demo tools](../../../examples/client/src/payment-tools.ts).
+The application holds the local signing key; the model only calls a tool. The opt-in batch route uses Solana Devnet USDC and the official SVM SDK. The separate local facilitator sponsors transactions. The repository's Anchor program backs only the custom `upto` route. Complete batch payout and live Devnet balance checks are still pending. Sources: [x402 SVM binding](https://github.com/x402-foundation/x402/blob/cb0ec5bca0a5b21860a36bb60f34433c2e8e0d71/specs/schemes/batch-settlement/scheme_batch_settlement_svm.md), [demo tools](../../../examples/client/src/payment-tools.ts).
 
 ## Evidence and scope of verification
 
-- Pinned payment-channels commit: `3ffa4d6728ad88e4a9667a76ad9ccd68a302c696`; x402 commit: `cb0ec5bca0a5b21860a36bb60f34433c2e8e0d71`. Issues can change, so recheck them and related PRs before implementation or presentation.
-- The [official README](https://github.com/solana-foundation/payment-channels/blob/3ffa4d6728ad88e4a9667a76ad9ccd68a302c696/README.md) reports mainnet operation; this does not prove completeness, stability, or support by every facilitator. Its v2 extensions are described as unimplemented proposals. Payment channel v2 and x402 v2 are separate things.
-- Issue #90 changes the states in which ordinary `settle` is allowed. It does not introduce a new voucher format or cryptography. The estimate that this addition is relatively small is our judgment; it does not mean the full channel system is easy to implement.
-- Issue #90 cannot recover an already Sealed channel or an early cooperative closure. Keep signature and deadline validation on chain, and distinguish `settle` from `distribute`.
-- Issue #83 has [fix PR #84](https://github.com/solana-foundation/payment-channels/pull/84), which was open and unmerged when checked (head `25df9636698c320a0716ba224cbc8724acf63edf`). It was removed from the presentation candidates by project decision.
+- x402 snapshot: `cb0ec5bca0a5b21860a36bb60f34433c2e8e0d71`; payment-channels baseline: `3ffa4d6728ad88e4a9667a76ad9ccd68a302c696`. Recheck upstream status before presenting.
+- The SDK route uses the Foundation program and client-signed vouchers. It is separate from the proposed custom Anchor Issue #90 route. The Foundation README's deployment report is not our independent verification.
+- Local tests cover HTTP challenge, facilitator forwarding, and durable stores. They do not prove successful deposit, claim, distribution, or refund on Devnet.
+- A stored voucher is an accepted off-chain claim, not a token transfer. A confirmed claim is still distinct from distribution.
+- Issue #90 cannot recover a channel after sealing. Its merchant-operated worker needs independent RPC and a SOL fee payer; this is design work.
 
 ## Before presenting
 
-Rehearse the narration and video together, and adjust them to fit four minutes. After implementation, update test results, execution logs, and reference commits, distinguishing plans from observations. The experimental Anchor program is a separate deployment; do not suggest that it changes the official canonical program.
+Rehearse narration and walkthrough together; confirm the date and presenter name. Record the exact commit and local test output. If a Devnet sequence becomes available, record transaction signatures and before/after balances, then update slides and narration to match that evidence.
