@@ -31,7 +31,7 @@ function parsePayload(payload: PaymentPayload): AnchorPayload {
   };
 }
 
-async function validateSignedTransaction(wire: string, expected: Instruction, feePayer: string, signer: string): Promise<void> {
+export async function validateSignedTransaction(wire: string, expected: Instruction, feePayer: string, signer: string): Promise<void> {
   const bytes = Buffer.from(wire, "base64");
   if (bytes.length > 1232) throw new Error("Transaction exceeds Solana packet size");
   const transaction = getTransactionDecoder().decode(bytes);
@@ -43,13 +43,17 @@ async function validateSignedTransaction(wire: string, expected: Instruction, fe
   const instructions = decompileTransactionMessage(message).instructions ?? [];
   if (instructions.length !== 1) throw new Error("Unexpected transaction instructions");
   const actual = instructions[0];
+  const expectedRoles = new Map<string, number>();
+  for (const account of expected.accounts ?? []) {
+    expectedRoles.set(account.address, (expectedRoles.get(account.address) ?? 0) | account.role);
+  }
+  if (expectedRoles.has(feePayer)) expectedRoles.set(feePayer, 3);
   if (actual.programAddress !== expected.programAddress ||
       !Buffer.from(actual.data ?? []).equals(Buffer.from(expected.data ?? [])) ||
       actual.accounts?.length !== expected.accounts?.length ||
       actual.accounts?.some((account, index) =>
         account.address !== expected.accounts?.[index].address ||
-        (account.role !== expected.accounts[index].role &&
-          !(account.address === feePayer && account.role === 3 && expected.accounts[index].role === 1)))) {
+        account.role !== expectedRoles.get(account.address))) {
     throw new Error("Transaction does not match the authorized Anchor instruction");
   }
   if (Object.keys(transaction.signatures).sort().join(",") !== [feePayer, signer].sort().join(",")) {

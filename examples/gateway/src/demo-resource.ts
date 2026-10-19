@@ -3,6 +3,8 @@ import { randomUUID } from "node:crypto";
 /** The paid resource is independent of the selected payment scheme. */
 export const DEMO_RESOURCE_PATH = "/api/trump-insider";
 export const UPTO_RESOURCE_PATH = `${DEMO_RESOURCE_PATH}/upto`;
+export const BATCH_RESOURCE_PATH = `${DEMO_RESOURCE_PATH}/batch`;
+export const AUTH_CAPTURE_RESOURCE_PATH = `${DEMO_RESOURCE_PATH}/auth-capture`;
 export const DEMO_RESOURCE_DESCRIPTION = "Donald Trump insider information — a fictional parody API";
 
 export function getDemoResource() {

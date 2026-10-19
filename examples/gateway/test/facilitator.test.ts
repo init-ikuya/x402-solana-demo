@@ -74,3 +74,37 @@ test("local facilitator refuses other recipients before using its signer", async
   assert.equal(response.status, 400);
   assert.equal(settled, 1);
 });
+
+test("local facilitator forwards a scoped batch voucher", async () => {
+  const batchRequirements: PaymentRequirements = {
+    scheme: "batch-settlement", network: DEVNET, asset: DEVNET_USDC,
+    amount: "1000", payTo, maxTimeoutSeconds: 300,
+    extra: { feePayer, voucherSigner: "client", assetTransferMethod: "channel", paymentFlow: "authorization" },
+  };
+  const batchPayload: PaymentPayload = {
+    x402Version: 2, accepted: batchRequirements,
+    payload: { type: "voucher", channelId: "channel-a" },
+  };
+  const response = await fetch(`${base}/verify`, {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ x402Version: 2, paymentPayload: batchPayload, paymentRequirements: batchRequirements }),
+  });
+  assert.equal(response.status, 200);
+  assert.equal(verified, 2);
+  const wrong = await fetch(`${base}/verify`, {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ x402Version: 2, paymentPayload: batchPayload, paymentRequirements: { ...batchRequirements, payTo: "other" } }),
+  });
+  assert.equal(wrong.status, 400);
+  assert.equal(verified, 2);
+  const claim = await fetch(`${base}/settle`, {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      x402Version: 2,
+      paymentPayload: { ...batchPayload, payload: { type: "claim", claims: [] } },
+      paymentRequirements: batchRequirements,
+    }),
+  });
+  assert.equal(claim.status, 200);
+  assert.equal(settled, 2);
+});

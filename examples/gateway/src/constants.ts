@@ -3,3 +3,4 @@ export const DEVNET_USDC = "4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU";
 export const EXACT_AMOUNT = "1000";
 export const UPTO_MAX_AMOUNT = "1000";
 export const UPTO_ACTUAL_AMOUNT = "300";
+export const BATCH_AMOUNT = "1000";

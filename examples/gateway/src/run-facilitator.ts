@@ -6,7 +6,10 @@ import { DEVNET } from "./constants.js";
 import { createFacilitatorApp } from "./facilitator.js";
 import { loadKeypair } from "./keypair.js";
 import { AnchorUptoFacilitatorScheme } from "./anchor-upto-facilitator.js";
+import { BatchSvmScheme } from "@x402/svm/batch-settlement/facilitator";
+import { FileBatchFacilitatorChannelStore, FileBatchPendingStore } from "./batch-facilitator-store.js";
 import { ANCHOR_UPTO_PROGRAM } from "../../shared/anchor-upto.js";
+import { AnchorAuthCaptureFacilitatorScheme } from "./anchor-auth-capture-facilitator.js";
 
 const payTo = process.env.GATEWAY_PAY_TO;
 if (!payTo) throw new Error("Set GATEWAY_PAY_TO");
@@ -26,6 +29,15 @@ if (process.env.UPTO_ENABLED === "1") {
   if (!deployed.value?.executable) throw new Error("Project Anchor program is not deployed at the facilitator RPC endpoint");
   facilitator.register(DEVNET, new AnchorUptoFacilitatorScheme(svmSigner, payTo));
 }
+if (process.env.AUTH_CAPTURE_ENABLED === "1") {
+  const deployed = await createSolanaRpc(rpcUrl).getAccountInfo(address(ANCHOR_UPTO_PROGRAM)).send();
+  if (!deployed.value?.executable) throw new Error("Auth-capture Anchor program is not deployed at the facilitator RPC endpoint");
+  facilitator.register(DEVNET, new AnchorAuthCaptureFacilitatorScheme(svmSigner, payTo));
+}
+if (process.env.BATCH_ENABLED === "1") facilitator.register(DEVNET, new BatchSvmScheme(svmSigner, {
+  channelStorage: new FileBatchFacilitatorChannelStore(process.env.BATCH_FACILITATOR_CHANNEL_STORE_FILE ?? ".batch-facilitator-channels.json"),
+  pendingSettlementStore: new FileBatchPendingStore(process.env.BATCH_PENDING_STORE_FILE ?? ".batch-facilitator-pending.json"),
+}));
 createFacilitatorApp(facilitator, payTo, signer.address).listen(port, "127.0.0.1", () => {
   console.log(`Payment facilitator listening at http://127.0.0.1:${port}`);
 });

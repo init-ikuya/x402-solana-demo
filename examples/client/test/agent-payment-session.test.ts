@@ -38,3 +38,13 @@ test("a signing failure releases a reservation, but the attempt count remains bo
   assert.equal(session.remaining, 1000n);
   assert.throws(() => session.reserve("exact", DEVNET_USDC, 1000n), /payment count limit/);
 });
+
+test("a batch voucher commitment records a charge without claiming an on-chain payout", () => {
+  const session = new AgentPaymentSession({ asset: DEVNET_USDC, maxTotalAmount: 2000n, maxPayments: 2 });
+  const id = session.reserve("batch-settlement", DEVNET_USDC, 1000n);
+  session.markSubmitted(id);
+  session.confirm(id, 1000n, "", "channel-a:1000");
+  assert.equal(session.spent, 1000n);
+  assert.equal(session.records[0].commitmentId, "channel-a:1000");
+  assert.equal(session.records[0].transaction, "");
+});

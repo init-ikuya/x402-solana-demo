@@ -6,10 +6,16 @@
   "scripts": {
     "agent": "tsx src/agent.ts",
     "agent:env": "node --env-file=.env --import tsx src/agent.ts",
+    "demo": "tsx src/demo-server.ts",
+    "demo:env": "node --env-file=.env --import tsx src/demo-server.ts",
     "pay": "tsx src/pay.ts",
     "pay:env": "node --env-file=.env --import tsx src/pay.ts",
     "refund": "tsx src/refund.ts",
     "refund:env": "node --env-file=.env --import tsx src/refund.ts",
+    "batch:refund": "tsx src/batch-refund.ts",
+    "batch:refund:env": "node --env-file=.env --import tsx src/batch-refund.ts",
+    "auth-capture:operate": "tsx src/auth-capture-operate.ts",
+    "auth-capture:operate:env": "node --env-file=.env --import tsx src/auth-capture-operate.ts",
     "check": "tsc --noEmit",
     "test": "node --import tsx --test test/*.test.ts"
   },

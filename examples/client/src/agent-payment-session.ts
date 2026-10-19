@@ -6,6 +6,8 @@ import {
   type PaidResource,
 } from "./exact-client.js";
 import { payForUptoResource } from "./upto-client.js";
+import { payForAuthCaptureResource } from "./auth-capture-client.js";
+import { BatchPaymentClient } from "./batch-client.js";
 
 export type PaymentState = "reserved" | "outcome_unknown" | "settled" | "cancelled_before_submission";
 
@@ -17,6 +19,8 @@ export interface PaymentRecord {
   state: PaymentState;
   charged?: bigint;
   transaction?: string;
+  commitmentId?: string;
+  paymentId?: string;
 }
 
 export interface PaymentBudget {
@@ -66,12 +70,14 @@ export class AgentPaymentSession {
     record.state = "outcome_unknown";
   }
 
-  confirm(id: number, charged: bigint, transaction: string): void {
+  confirm(id: number, charged: bigint, transaction: string, commitmentId?: string, paymentId?: string): void {
     const record = this.#active(id, "outcome_unknown");
-    if (charged < 0n || charged > record.ceiling || !transaction) throw new Error("Invalid confirmed payment");
+    if (charged < 0n || charged > record.ceiling || (!transaction && !commitmentId)) throw new Error("Invalid confirmed payment");
     record.state = "settled";
     record.charged = charged;
     record.transaction = transaction;
+    record.commitmentId = commitmentId;
+    record.paymentId = paymentId;
     this.#spent += charged;
     this.#activeId = undefined;
   }
@@ -112,8 +118,31 @@ export class AgentPaymentSession {
     return this.#pay("upto", payForUptoResource, url, limits, signer, fetchImpl, options);
   }
 
+  /** Escrow-only auth-capture adapter. The final merchant charge may be below the hold. */
+  async payAuthCapture(
+    url: string,
+    limits: ExactPaymentLimits,
+    signer: ClientSvmSigner,
+    fetchImpl: typeof fetch = fetch,
+    options: Pick<ExactClientOptions, "rpcUrl"> = {},
+  ): Promise<PaidResource> {
+    return this.#pay("auth-capture", payForAuthCaptureResource, url, limits, signer, fetchImpl, options);
+  }
+
+  /** Batch vouchers authorize a charge; token distribution is confirmed later by the worker. */
+  async payBatch(
+    url: string,
+    limits: ExactPaymentLimits,
+    signer: ClientSvmSigner,
+    client: BatchPaymentClient,
+    fetchImpl: typeof fetch = fetch,
+  ): Promise<PaidResource> {
+    return this.#pay("batch-settlement", (target, accepted, _signer, fetcher, options) =>
+      client.pay(target, accepted, fetcher, options), url, limits, signer, fetchImpl, {});
+  }
+
   async #pay(
-    scheme: "exact" | "upto",
+    scheme: "exact" | "upto" | "batch-settlement" | "auth-capture",
     adapter: typeof payForExactResource,
     url: string,
     limits: ExactPaymentLimits,
@@ -138,8 +167,13 @@ export class AgentPaymentSession {
         },
       });
       if (id === undefined || amount === undefined) throw new Error("Missing payment reservation");
-      const charged = scheme === "exact" ? amount : BigInt(result.settlement.amount ?? "-1");
-      this.confirm(id, charged, result.settlement.transaction);
+      const charged = scheme === "exact" ? amount : BigInt(
+        scheme === "batch-settlement" ? String(result.settlement.extra?.chargedAmount ?? "-1") : result.settlement.amount ?? "-1");
+      const commitmentId = scheme === "batch-settlement" ? result.settlement.extra?.commitmentId : undefined;
+      const paymentId = scheme === "auth-capture" ? result.settlement.extra?.paymentId : undefined;
+      this.confirm(id, charged, result.settlement.transaction,
+        typeof commitmentId === "string" ? commitmentId : undefined,
+        typeof paymentId === "string" ? paymentId : undefined);
       return result;
     } catch (error) {
       if (id !== undefined && this.#records[id - 1].state === "reserved") {
