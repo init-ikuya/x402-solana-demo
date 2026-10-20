@@ -52,7 +52,7 @@ The later refund is **merchant-initiated**, not requested by the agent. The loca
 
 ## PDF page 6 — Money and refund
 
-> Release and refund move different money. The 700-unit release comes from escrow. A later 100-unit refund comes from the merchant's wallet, with merchant consent and liquidity. The merchant ultimately keeps 200.
+> A buyer's refund request can be off-chain or on-chain; x402 does not define that request. This recording shows neither. Here the merchant separately signs an on-chain 100-unit refund from its wallet. The earlier 700-unit release came from escrow, leaving the merchant with 200.
 
 ## PDF page 7 — Evidence
 
@@ -67,6 +67,6 @@ The later refund is **merchant-initiated**, not requested by the agent. The loca
 - The paid report is explicitly fictional parody, not real private information.
 - The example uses classic SPL Token, associated token accounts, one merchant, and zero protocol fees.
 - The merchant can refuse a refund or lack liquidity. The payer reclaim returns only funds still held.
-- The in-request capture is relayed through facilitator `/settle`; the later refund uses a direct merchant-signed operation behind the browser recording. Do not imply that the agent requested the refund.
+- The in-request capture is relayed through facilitator `/settle`; the later refund uses a direct merchant-signed operation behind the browser recording. A buyer refund request could use an off-chain message or a separate on-chain instruction, but neither is defined by the generic x402 scheme. This agent makes no request and does not trigger the recorded refund.
 - The custom auth-capture program does not implement [payment-channels Issue #90](https://github.com/solana-foundation/payment-channels/issues/90).
 - Avoid claims of first implementation or official SVM compatibility.

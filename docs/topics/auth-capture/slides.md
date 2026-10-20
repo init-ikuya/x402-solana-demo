@@ -171,8 +171,8 @@ style: |
 ## Release and refund use different money.
 
 <div class="grid three"><div class="card"><div class="number">1000</div><h3>Hold</h3><p>Client → hold vault</p></div><div class="card"><div class="number">300 / 700</div><h3>Capture / release</h3><p>Vault → merchant / client</p></div><div class="card"><div class="number">100</div><h3>Later refund</h3><p>Merchant wallet → client</p></div></div>
-<div class="band">Refunds require merchant consent and liquidity; they do not restore capture capacity.</div>
-<p class="small muted" style="margin-top:20px">After the example: client recovered 800 units, merchant retains 200, hold is empty.<br>Atomic USDC units (1000 = 0.001 USDC). Zero protocol fees; SOL network fees are separate.</p>
+<div class="band">Refund request: app-defined, off-chain or on-chain. Merchant-approved return: on-chain in our binding.</div>
+<p class="small muted" style="margin-top:20px">The recording shows a manual merchant refund, not a buyer request. Merchant consent and liquidity are required.<br>Client recovered 800 units; merchant retains 200. Atomic USDC units (1000 = 0.001 USDC); SOL fees are separate.</p>
 <div class="sources">Accounting: <a href="ARCHITECTURE.md#accounts-and-accounting">architecture</a> · <a href="../../../programs/anchoring-payment-channels/tests/test_auth_capture.rs">LiteSVM tests</a><br>Refund funding is a binding requirement: <a href="https://github.com/x402-foundation/x402/blob/main/specs/schemes/auth-capture/scheme_auth_capture.md#network-requirements">generic specification</a>. Amounts are illustrative atomic units.</div>
 
 ---
