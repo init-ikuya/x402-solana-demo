@@ -9,7 +9,7 @@ export const DEMO_RESOURCE_DESCRIPTION = "Donald Trump insider information — a
 
 export function getDemoResource() {
   return {
-    reportId: `FICTION-${randomUUID().slice(0, 8).toUpperCase()}`,
+    reportId: `REPORT-${randomUUID().slice(0, 8).toUpperCase()}`,
     title: "Donald Trump Insider Brief — Palm Beach Desk",
     fictional: true,
     source: "An entirely invented aide's private scheduling note",

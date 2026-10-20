@@ -54,7 +54,7 @@ const model = provider === "lm-studio"
 try {
   const result = await runAgent({
     model,
-    prompt: process.env.AGENT_PROMPT ?? "Use each available paid API tool once. In your answer, include each report ID and exact headline from the API, then summarize the fictional findings and what each call cost.",
+    prompt: process.env.AGENT_PROMPT ?? "Use each available paid API tool once. Then briefly assess what each report actually reveals and whether it is useful. State what each call cost in atomic token units. Do not copy report IDs or headlines into the answer.",
     tools: createPaymentTools({
       session, signer, limits: { payTo, asset: DEVNET_USDC, maxAmount }, routes,
       fetchImpl: process.env.PAYMENT_DEMO_TRACE === "1" ? createDemoHttpTrace() : fetch,
@@ -65,6 +65,9 @@ try {
     maxToolCalls: maxPayments,
     onToolCall: process.env.PAYMENT_DEMO_TRACE === "1"
       ? name => console.log(`[AGENT] Selected tool: ${name}`)
+      : undefined,
+    onActivity: process.env.PAYMENT_DEMO_TRACE === "1"
+      ? activity => console.log(`[AGENT] Activity: ${activity}`)
       : undefined,
     reviewAnswer: reviewDemoAnswer,
   });

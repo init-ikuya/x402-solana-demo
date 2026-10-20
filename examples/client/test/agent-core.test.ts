@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { runAgent, type AgentTool, type ChatMessage, type ChatModel } from "../src/agent-core.js";
+import { runAgent, type AgentActivity, type AgentTool, type ChatMessage, type ChatModel } from "../src/agent-core.js";
 import { reviewDemoAnswer } from "../src/demo-answer.js";
 import { OllamaChatModel } from "../src/ollama-model.js";
 import { LmStudioChatModel } from "../src/lm-studio-model.js";
@@ -41,11 +41,12 @@ test("agent stops before executing an unknown or over-budget tool call", async (
   assert.equal(executed, 0);
 });
 
-test("paid report evidence is required in the answer without another payment", async () => {
+test("agent revises a copied report into a grounded verdict without another payment", async () => {
   const reportId = "FICTION-A4B5C6D7";
   const headline = "A private briefing precedes the public rollout";
   let payments = 0;
   let turns = 0;
+  const activity: AgentActivity[] = [];
   const tool: AgentTool = { name: "paid", description: "Paid", parameters: { type: "object", properties: {} },
     async execute() {
       payments++;
@@ -59,16 +60,19 @@ test("paid report evidence is required in the answer without another payment", a
       assert.match(messages.at(-1)!.content, /Call an available paid API tool/);
       return { content: "", toolCalls: [{ name: "paid", arguments: {} }] };
     }
-    if (turns === 3) return { content: "A report was purchased.", toolCalls: [] };
+    if (turns === 3) return { content: `${reportId}: ${headline}. It cost 300 units.`, toolCalls: [] };
     assert.equal(tools.length, 0);
-    assert.match(messages.at(-1)!.content, /Include every report ID/);
-    return { content: `${reportId}: ${headline}. It cost 300 units.`, toolCalls: [] };
+    assert.match(messages.at(-1)!.content, /Do not copy the report ID/);
+    return { content: "It is only a teaser for a later announcement, so I would not act on it. The charge was 300 atomic token units.", toolCalls: [] };
   } };
-  const result = await runAgent({ model, prompt: "Get the report", tools: [tool], reviewAnswer: reviewDemoAnswer });
+  const result = await runAgent({ model, prompt: "Get the report", tools: [tool], reviewAnswer: reviewDemoAnswer,
+    onActivity: stage => activity.push(stage) });
   assert.equal(payments, 1);
   assert.equal(result.toolCalls, 1);
   assert.equal(result.toolResults.length, 1);
-  assert.match(result.answer, /FICTION-A4B5C6D7/);
+  assert.doesNotMatch(result.answer, /FICTION-A4B5C6D7/);
+  assert.match(result.answer, /300 atomic token units/);
+  assert.deepEqual(activity, ["selecting_tool", "selecting_tool", "using_tool", "evaluating_report", "revising_answer"]);
 });
 
 test("Ollama adapter sends native tool schema and preserves tool results in the next turn", async () => {

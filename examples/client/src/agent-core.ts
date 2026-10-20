@@ -26,6 +26,8 @@ export interface AgentResult {
   toolResults: Array<{ toolName: string; content: string }>;
 }
 
+export type AgentActivity = "selecting_tool" | "using_tool" | "evaluating_report" | "revising_answer";
+
 /** The model chooses tools; application code owns their arguments, keys, and spending policy. */
 export async function runAgent(options: {
   model: ChatModel;
@@ -34,6 +36,7 @@ export async function runAgent(options: {
   maxTurns?: number;
   maxToolCalls?: number;
   onToolCall?: (name: string) => void;
+  onActivity?: (activity: AgentActivity) => void;
   reviewAnswer?: (answer: string, toolResults: readonly { toolName: string; content: string }[]) => string | undefined;
 }): Promise<AgentResult> {
   const { model, prompt, tools } = options;
@@ -51,6 +54,8 @@ export async function runAgent(options: {
   const toolResults: AgentResult["toolResults"] = [];
   let revisionOnly = false;
   for (let turn = 0; turn < maxTurns; turn++) {
+    options.onActivity?.(revisionOnly ? "revising_answer" :
+      toolResults.length ? "evaluating_report" : "selecting_tool");
     const reply = await model.complete(messages, revisionOnly ? [] : tools);
     if (!Array.isArray(reply.toolCalls)) throw new Error("Model returned invalid tool calls");
     if (reply.toolCalls.length === 0) {
@@ -71,6 +76,7 @@ export async function runAgent(options: {
     messages.push({ role: "assistant", content: reply.content, toolCalls: reply.toolCalls });
     for (const call of reply.toolCalls) {
       options.onToolCall?.(call.name);
+      options.onActivity?.("using_tool");
       const result = await byName.get(call.name)!.execute(call.arguments);
       messages.push({ role: "tool", toolName: call.name, content: result,
         ...(call.id ? { toolCallId: call.id } : {}) });

@@ -103,7 +103,7 @@ const server = createServer((request, response) => {
           AGENT_MAX_TOTAL_AMOUNT: "1000",
           PAYMENT_DEMO_TRACE: "1",
           AGENT_PROMPT: process.env.DEMO_AGENT_PROMPT ??
-            "Call the auth-capture paid API once. Include the report ID and exact headline. State the amount charged in atomic token units only; do not invent a fiat conversion.",
+            "Call the auth-capture paid API once. I want to know whether its supposed insider tip contains anything actionable. Answer in one or two short sentences with your own verdict and why, then state the amount charged in atomic token units. Do not repeat the report ID, headline, or raw API fields. Do not invent a fiat conversion.",
         },
         stdio: ["ignore", "pipe", "pipe"],
       },
