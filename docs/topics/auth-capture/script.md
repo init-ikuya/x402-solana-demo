@@ -60,7 +60,7 @@ The later refund is **merchant-initiated**, not requested by the agent. The loca
 
 ## PDF page 8 — Scope
 
-> Today's contribution is the default escrow lifecycle on Solana. The program is deployed on Devnet; a Devnet payment and balance check are next. The alternative direct-charge flow is outside this implementation. Official SVM interoperability is still unverified. Thank you.
+> Today's contribution is the default escrow lifecycle on Solana. Next, we need to verify a Devnet payment and balances. The alternative authorization-to-charge flow is optional future work beyond this escrow binding. Official SVM interoperability is still unverified. Thank you.
 
 ## Presenter notes
 

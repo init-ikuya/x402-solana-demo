@@ -185,7 +185,7 @@ The program allows `void` after the capture deadline as a voluntary release; `ca
 2. **Implemented and locally tested:** authorize, capture, atomic capture-and-void, void, payer reclaim, and merchant-funded refund.
 3. **Implemented with local HTTP tests and validator transactions:** gateway/facilitator escrow route, agent payment tool, and merchant refund. The direct operation CLI has not been verified on live Devnet.
 4. **Next validation:** record Devnet hold, capture/release, refund, and reclaim balances; test process restart and timeout reconciliation with real RPC.
-5. **Future scope:** specify and implement direct `charge` for the authorization flow, including maximum authorization, actual-amount server consent, and single-use collection.
+5. **Optional future extension:** specify and implement direct `charge` for the alternative authorization flow, including maximum authorization, actual-amount server consent, and single-use collection. This is broader scheme coverage, not a prerequisite for the escrow binding.
 
 Client authorization for a variable direct charge, exact HTTP error mapping, operation-sequence conflict handling across workers, program-ID negotiation for the experimental binding, and account cleanup remain design decisions. The diagrams above intentionally cover the escrow demonstrator, not an already-complete four-scheme implementation.
 

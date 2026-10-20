@@ -194,7 +194,7 @@ style: |
 ## Escrow implemented.<br>Devnet payment to verify.
 
 <div class="roadmap"><div class="card"><span class="tag">IMPLEMENTED · ESCROW</span><h3>Working prototype</h3><p>Anchor program, HTTP adapter, and browser-driven AI agent payment.</p></div><div class="steps"><div class="step"><span>✓</span> Hold, capture, void, reclaim</div><div class="step"><span>✓</span> Merchant-funded refund</div><div class="step"><span>✓</span> Program deployed on Devnet</div><div class="step"><span>→</span> Verify a Devnet payment</div></div></div>
-<div class="band">Experimental escrow binding; the alternative authorization / direct-charge flow is outside this implementation.</div>
+<div class="band">Future work: add the alternative authorization → charge flow. It is optional for this escrow binding.</div>
 <div class="sources"><a href="../../../programs/anchoring-payment-channels/src/auth_capture.rs">Anchor program</a> · <a href="ARCHITECTURE.md#binding-and-implementation-milestones">Roadmap</a> · <a href="https://github.com/x402-foundation/x402/blob/main/specs/schemes/auth-capture/scheme_auth_capture.md">Scheme flows</a><br>The separate <a href="../closing-settlement/ARCHITECTURE.md">Issue #90 design</a> does not define this binding.</div>
 
 ---
