@@ -1,4 +1,5 @@
 pub mod auth_capture;
+pub mod batch;
 pub mod constants;
 pub mod error;
 pub mod instructions;
@@ -8,6 +9,7 @@ use anchor_lang::prelude::*;
 
 #[allow(ambiguous_glob_reexports)]
 pub use auth_capture::*;
+pub use batch::*;
 pub use constants::*;
 pub use instructions::*;
 pub use state::*;
@@ -28,6 +30,23 @@ pub mod anchoring_payment_channels {
 
     pub fn refund(ctx: Context<Refund>) -> Result<()> {
         crate::instructions::refund::handle_refund(ctx)
+    }
+
+    pub fn open_batch(
+        ctx: Context<OpenBatch>,
+        nonce: u64,
+        deposit: u64,
+        expires_at: i64,
+    ) -> Result<()> {
+        batch::handle_open_batch(ctx, nonce, deposit, expires_at)
+    }
+
+    pub fn claim_batch(ctx: Context<ClaimBatch>, cumulative_amount: u64) -> Result<()> {
+        batch::handle_claim_batch(ctx, cumulative_amount)
+    }
+
+    pub fn close_batch(ctx: Context<CloseBatch>) -> Result<()> {
+        batch::handle_close_batch(ctx)
     }
 
     pub fn authorize_hold(

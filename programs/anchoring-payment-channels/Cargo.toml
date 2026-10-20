@@ -23,14 +23,17 @@ custom-panic = []
 [dependencies]
 anchor-lang = "1.2.0"
 anchor-spl = { version = "1.2.0", default-features = false, features = ["associated_token", "token", "token_2022"] }
+solana-instructions-sysvar = "3.0.1"
+solana-sdk-ids = "3.1.0"
 
 [dev-dependencies]
-litesvm = "0.10.0"
+litesvm = { version = "0.10.0", features = ["precompiles"] }
 solana-account = "3.4.0"
 solana-message = "3.0.1"
 solana-transaction = "3.0.2"
 solana-signer = "3.0.0"
 solana-keypair = "3.0.1"
+solana-sdk-ids = "3.1.0"
 
 
 [lints.rust]

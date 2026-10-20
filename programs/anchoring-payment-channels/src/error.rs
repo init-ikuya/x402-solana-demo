@@ -34,4 +34,12 @@ pub enum ErrorCode {
     InsufficientVault,
     #[msg("The payment counters overflow")]
     CounterOverflow,
+    #[msg("The batch voucher is invalid")]
+    InvalidBatchVoucher,
+    #[msg("The batch voucher amount must increase")]
+    StaleBatchVoucher,
+    #[msg("The batch channel can no longer accept claims")]
+    BatchClaimExpired,
+    #[msg("The batch channel can not be closed before its claim window ends")]
+    BatchCloseTooEarly,
 }
