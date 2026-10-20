@@ -1,24 +1,24 @@
 # Auth-Capture on Solana — speaker script
 
-Main English Demo Day talk: seven main slides, followed by an Appendix divider and two optional reference slides. Target about 3 minutes 28 seconds, including the recorded 38-second local validator demo, leaving room under the four-minute limit. Use the [slides](slides.md), [architecture](ARCHITECTURE.md), and [demo runbook](demo.md) together. Label the recording as a local validator transaction with a test token; Devnet payment remains unverified.
+Main English Demo Day talk: seven content slides plus a DEMO divider, followed by an Appendix divider and two optional reference slides. Target about 3 minutes 28 seconds, including the recorded 38-second local validator demo, leaving room under the four-minute limit. Use the [slides](slides.md), [architecture](ARCHITECTURE.md), and [demo runbook](demo.md) together. Label the recording as a local validator transaction with a test token; Devnet payment remains unverified.
 
 ## Timing
 
 | Segment | Seconds |
 | --- | ---: |
-| Slide 1 — problem and result | 20 |
-| Slide 2 — EVM/SVM gap | 25 |
-| Slide 3 — actors and authority | 20 |
+| PDF page 1 — problem and result | 20 |
+| PDF page 2 — specification and binding | 25 |
+| PDF page 3 — actors and authority | 20 |
 | Auth-capture demo walkthrough | 38 |
-| Slide 4 — request lifecycle | 25 |
-| Slide 5 — money and refund | 20 |
-| Slide 6 — test evidence | 25 |
-| Slide 7 — limits and next validation | 20 |
+| PDF page 5 — request lifecycle | 25 |
+| PDF page 6 — money and refund | 20 |
+| PDF page 7 — test evidence | 25 |
+| PDF page 8 — limits and next validation | 20 |
 | Transitions | 15 |
 
 Total: 208 seconds. The recorded clip is 38.4 seconds; rehearse the spoken transitions separately.
 
-Read each quoted paragraph while the matching PDF page is visible. After page 3, switch to the recorded demo; resume the PDF at page 4 when the clip ends. Page 8 is the Appendix divider, and pages 9–10 are optional reference slides with no scripted lines.
+Read each quoted paragraph while the matching PDF page is visible. After page 3, advance to page 4 (DEMO), then switch to the recorded clip. Resume the PDF at page 5 when the clip ends. Page 9 is the Appendix divider, and pages 10–11 are optional reference slides with no scripted lines.
 
 ## PDF page 1 — Hold, capture, refund
 
@@ -34,9 +34,9 @@ Sources: [generic auth-capture specification](https://github.com/x402-foundation
 
 > The model chooses the paid API tool, while application code enforces the budget. The payer signs the hold; the merchant signs capture or refund. The facilitator relays transactions, and the payer can reclaim an abandoned hold after the deadline.
 
-## Recorded demo — after PDF page 3
+## PDF page 4 — DEMO divider and recorded clip
 
-Play the [38-second two-scene browser recording](demo.md#browser-presentation). The sequence diagram puts the agent/client on the left and API provider/merchant on the right. The activity strip reports observed model and payment-tool stages; it is not a transcript of private reasoning. Read the following lines while the matching part of the clip is visible:
+Show the DEMO divider without narration while switching to the [38-second two-scene browser recording](demo.md#browser-presentation). The sequence diagram puts the agent/client on the left and API provider/merchant on the right. The activity strip reports observed model and payment-tool stages; it is not a transcript of private reasoning. Read the following lines while the matching part of the clip is visible:
 
 | Video time | On screen | Say |
 | --- | --- | --- |
@@ -46,19 +46,19 @@ Play the [38-second two-scene browser recording](demo.md#browser-presentation). 
 
 The later refund is **merchant-initiated**, not requested by the agent. The local test token is not pegged to a dollar, and this clip is not a Devnet transfer. Keep deadline reclaim and CLI details in Q&A.
 
-## PDF page 4 — Request lifecycle
+## PDF page 5 — Request lifecycle
 
 > This is the spec's escrow ordering: settle the hold, run the resource, then settle capture and release. The client gets a 402 ceiling and retries with a signature. On failure, the merchant voids; after the capture deadline, the payer may reclaim any remaining hold.
 
-## PDF page 5 — Money and refund
+## PDF page 6 — Money and refund
 
 > Release and refund move different money. The 700-unit release comes from escrow. A later 100-unit refund comes from the merchant's wallet, with merchant consent and liquidity. The merchant ultimately keeps 200.
 
-## PDF page 6 — Evidence
+## PDF page 7 — Evidence
 
 > LiteSVM tests cover authority, amount bounds, replay, deadlines, and refund liquidity. The HTTP integration test uses simulated RPC. Separately, the browser agent and merchant refund ran against a local validator with confirmed balance changes. Devnet remains unverified.
 
-## PDF page 7 — Scope
+## PDF page 8 — Scope
 
 > Today's contribution is the default escrow lifecycle on Solana. The program is deployed on Devnet; a Devnet payment and balance check are next. The alternative direct-charge flow is outside this implementation. Official SVM interoperability is still unverified. Thank you.
 

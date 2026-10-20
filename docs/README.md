@@ -16,7 +16,7 @@
 
 These materials are for the Solana School: Fall Class Demo Day. The presentation is **in English and four minutes long**. A video or live walkthrough may use approximately one minute. Confirm the event date before exporting slides.
 
-- [Auth-capture slides](topics/auth-capture/slides.md): Main presentation with seven main slides and two optional slides. `---` separates slides.
+- [Auth-capture slides](topics/auth-capture/slides.md): Main presentation with seven content slides, a DEMO divider, and two optional slides after the Appendix divider. `---` separates slides.
 - [Auth-capture speaker script](topics/auth-capture/script.md): English narration, four-minute timing, and cues for the recorded sequence diagram.
 - [Browser demo runbook](topics/auth-capture/demo.md): Real local agent process, client/provider sequence, recorded presentation, and evidence limits.
 - Put any diagrams or screenshots in the relevant topic's `assets/` directory and reference them with relative paths.

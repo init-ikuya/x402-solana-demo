@@ -44,12 +44,13 @@ style: |
   section.paper .card { background: #2a2041; border-color: #655080; }
   section.paper .card p, section.paper .muted, section.paper .sources { color: #cec4df; }
   section.paper .band { background: #31254b; }
-  section.appendix-divider {
+  section.appendix-divider, section.demo-divider {
     background: radial-gradient(circle at center, #32204e 0%, #110e20 72%);
     justify-content: center; align-items: center; text-align: center; padding: 0;
   }
-  section.appendix-divider h1 { font-size: 96px; letter-spacing: -2px; }
-  section.appendix-divider::before, section.appendix-divider::after { display: none; }
+  section.appendix-divider h1, section.demo-divider h1 { font-size: 96px; letter-spacing: -2px; }
+  section.appendix-divider::before, section.appendix-divider::after,
+  section.demo-divider::before, section.demo-divider::after { display: none; }
   .cover-layout { display: grid; grid-template-columns: 1.6fr 1fr; gap: 48px; align-items: center; margin-top: 42px; }
   .cover-sub { max-width: 650px; margin-top: 25px; font-size: 29px; color: #cec4df; }
   .presenter { margin-top: 24px; color: #caa9ff; font-size: 20px; letter-spacing: 0.4px; }
@@ -144,6 +145,12 @@ style: |
 <div class="band">The facilitator cannot replace payer or merchant authorization.</div>
 <p class="small muted" style="margin-top:18px">The browser agent runs the paid request. Later refunds and payer reclaim are separate operations. The model never receives keys.</p>
 <div class="sources">Signer model: <a href="ARCHITECTURE.md#actors-and-trust-boundaries">architecture</a> · <a href="../../../examples/client/src/payment-tools.ts">paid API tools</a><br>Authority and refund-funding requirements: <a href="https://github.com/x402-foundation/x402/blob/main/specs/schemes/auth-capture/scheme_auth_capture.md#network-requirements">generic specification</a>.</div>
+
+---
+
+<!-- _class: demo-divider -->
+
+# DEMO
 
 ---
 
