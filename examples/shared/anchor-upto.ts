@@ -4,7 +4,8 @@ import {
   createSolanaRpc, createTransactionMessage, getBase58Encoder,
   getBase64EncodedWireTransaction, getI64Encoder, getProgramDerivedAddress,
   getU64Encoder, partiallySignTransactionMessageWithSigners, pipe,
-  setTransactionMessageFeePayer, setTransactionMessageLifetimeUsingBlockhash,
+  setTransactionMessageFeePayer, setTransactionMessageFeePayerSigner,
+  setTransactionMessageLifetimeUsingBlockhash,
   type Address, type Instruction, type TransactionSigner,
 } from "@solana/kit";
 
@@ -107,14 +108,31 @@ export async function refundInstruction(args: {
 }
 
 export async function signedTransaction(instruction: Instruction, feePayer: string, rpcUrl: string): Promise<string> {
+  return signedInstructions([instruction], feePayer, rpcUrl);
+}
+
+export async function signedInstructions(instructions: Instruction[], feePayer: string, rpcUrl: string): Promise<string> {
   const blockhash = (await createSolanaRpc(rpcUrl).getLatestBlockhash().send()).value;
   const message = pipe(
     createTransactionMessage({ version: 0 }),
     msg => setTransactionMessageFeePayer(address(feePayer), msg),
     msg => setTransactionMessageLifetimeUsingBlockhash(blockhash, msg),
-    msg => appendTransactionMessageInstructions([instruction], msg),
+    msg => appendTransactionMessageInstructions(instructions, msg),
   );
   const wire = getBase64EncodedWireTransaction(await partiallySignTransactionMessageWithSigners(message));
   if (Buffer.from(wire, "base64").length > 1232) throw new Error("Anchor upto transaction exceeds Solana packet size");
+  return wire;
+}
+
+export async function signedSelfFundedTransaction(instruction: Instruction, signer: TransactionSigner, rpcUrl: string): Promise<string> {
+  const blockhash = (await createSolanaRpc(rpcUrl).getLatestBlockhash().send()).value;
+  const message = pipe(
+    createTransactionMessage({ version: 0 }),
+    msg => setTransactionMessageFeePayerSigner(signer, msg),
+    msg => setTransactionMessageLifetimeUsingBlockhash(blockhash, msg),
+    msg => appendTransactionMessageInstructions([instruction], msg),
+  );
+  const wire = getBase64EncodedWireTransaction(await partiallySignTransactionMessageWithSigners(message));
+  if (Buffer.from(wire, "base64").length > 1232) throw new Error("Transaction exceeds Solana packet size");
   return wire;
 }

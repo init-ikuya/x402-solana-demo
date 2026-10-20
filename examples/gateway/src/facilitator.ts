@@ -3,6 +3,7 @@ import type { PaymentPayload, PaymentRequirements, SettleResponse, VerifyRespons
 import { BATCH_AMOUNT, DEVNET, DEVNET_USDC, EXACT_AMOUNT, UPTO_MAX_AMOUNT } from "./constants.js";
 import { ANCHOR_UPTO_PROGRAM, UPTO_SCHEME } from "../../shared/anchor-upto.js";
 import { AUTH_CAPTURE_BINDING, AUTH_CAPTURE_PROGRAM, AUTH_CAPTURE_SCHEME } from "../../shared/anchor-auth-capture.js";
+import { ANCHOR_BATCH_BINDING, ANCHOR_BATCH_PROGRAM } from "../../shared/anchor-batch.js";
 
 export interface PaymentFacilitator {
   getSupported(): unknown;
@@ -40,14 +41,19 @@ export function createFacilitatorApp(facilitator: PaymentFacilitator, payTo: str
           requirements.maxTimeoutSeconds !== 300 || accepted.maxTimeoutSeconds !== 300 ||
           typeof payload.payload?.openTransaction !== "string") return null;
     } else if (requirements.scheme === "batch-settlement") {
-      if (!/^\d+$/.test(requirements.amount) || BigInt(requirements.amount) > BigInt(BATCH_AMOUNT) ||
-          !/^\d+$/.test(accepted.amount) || BigInt(accepted.amount) > BigInt(BATCH_AMOUNT) ||
+      if (requirements.amount !== BATCH_AMOUNT || accepted.amount !== BATCH_AMOUNT ||
           requirements.extra?.assetTransferMethod !== "channel" ||
           accepted.extra?.assetTransferMethod !== "channel" ||
-          ![undefined, "authorization"].includes(requirements.extra?.paymentFlow as string | undefined) ||
-          ![undefined, "authorization"].includes(accepted.extra?.paymentFlow as string | undefined) ||
+          requirements.extra?.paymentFlow !== "authorization" ||
+          accepted.extra?.paymentFlow !== "authorization" ||
           requirements.extra?.voucherSigner !== "client" || accepted.extra?.voucherSigner !== "client" ||
-          typeof payload.payload?.type !== "string") return null;
+          requirements.extra?.binding !== ANCHOR_BATCH_BINDING || accepted.extra?.binding !== ANCHOR_BATCH_BINDING ||
+          requirements.extra?.programId !== ANCHOR_BATCH_PROGRAM || accepted.extra?.programId !== ANCHOR_BATCH_PROGRAM ||
+          requirements.maxTimeoutSeconds !== 300 || accepted.maxTimeoutSeconds !== 300 ||
+          typeof payload.payload?.payer !== "string" ||
+          typeof payload.payload?.channelId !== "string" ||
+          typeof payload.payload?.cumulative !== "string" ||
+          typeof payload.payload?.signature !== "string") return null;
     } else if (requirements.scheme === AUTH_CAPTURE_SCHEME) {
       if (accepted.amount !== "1000" || !/^\d+$/.test(requirements.amount) ||
           BigInt(requirements.amount) > 1000n ||

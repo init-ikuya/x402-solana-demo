@@ -1,27 +1,29 @@
 import express from "express";
-import { HTTPFacilitatorClient, x402ResourceServer } from "@x402/core/server";
+import { x402ResourceServer } from "@x402/core/server";
 import { paymentMiddleware, setSettlementOverrides } from "@x402/express";
 import { ExactSvmScheme } from "@x402/svm/exact/server";
-import { BatchSvmScheme } from "@x402/svm/batch-settlement/server";
 import type { TransactionSigner } from "@solana/kit";
+import type { SchemeNetworkServer } from "@x402/core/types";
 import { DEVNET, UPTO_ACTUAL_AMOUNT } from "./constants.js";
 import { AUTH_CAPTURE_RESOURCE_PATH, BATCH_RESOURCE_PATH, DEMO_RESOURCE_DESCRIPTION, DEMO_RESOURCE_PATH, UPTO_RESOURCE_PATH, getDemoResource } from "./demo-resource.js";
 import { AnchorUptoServerScheme } from "./anchor-upto-server.js";
 import { AnchorAuthCaptureServerScheme } from "./anchor-auth-capture-server.js";
+import { RoutedFacilitatorClient } from "./routed-facilitator.js";
 
 export { DEVNET } from "./constants.js";
 
 export interface GatewayConfig {
   payTo: string;
   facilitatorUrl: string;
+  exactFacilitatorUrl?: string;
   anchorMerchantSigner?: TransactionSigner;
   anchorRpcUrl?: string;
-  batchScheme?: BatchSvmScheme;
+  batchScheme?: SchemeNetworkServer;
   authCaptureMerchantSigner?: TransactionSigner;
 }
 
 export function createApp(config: GatewayConfig) {
-  const facilitator = new HTTPFacilitatorClient({ url: config.facilitatorUrl });
+  const facilitator = new RoutedFacilitatorClient(config.facilitatorUrl, config.exactFacilitatorUrl);
   const resourceServer = new x402ResourceServer(facilitator).register(
     DEVNET,
     new ExactSvmScheme(),

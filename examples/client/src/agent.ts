@@ -7,7 +7,8 @@ import { loadKeypair } from "./keypair.js";
 import { OllamaChatModel } from "./ollama-model.js";
 import { LmStudioChatModel } from "./lm-studio-model.js";
 import { createPaymentTools, type PaymentScheme } from "./payment-tools.js";
-import { BatchPaymentClient, FileBatchClientStorage } from "./batch-client.js";
+import { AnchorBatchPaymentClient, type AnchorBatchClientRecord } from "./anchor-batch-client.js";
+import { AtomicJsonStore } from "../../shared/atomic-json-store.js";
 
 function positiveInteger(name: string, value: string): number {
   if (!/^[1-9]\d*$/.test(value) || !Number.isSafeInteger(Number(value))) throw new Error(`${name} must be a positive safe integer`);
@@ -38,9 +39,9 @@ const batchDepositAmount = BigInt(process.env.BATCH_DEPOSIT_AMOUNT ?? totalAmoun
 if (schemes.includes("batch-settlement") && (batchDepositAmount <= 0n || batchDepositAmount > totalAmount)) {
   throw new Error("BATCH_DEPOSIT_AMOUNT must fit within AGENT_MAX_TOTAL_AMOUNT");
 }
-const batchClient = schemes.includes("batch-settlement") ? new BatchPaymentClient(
+const batchClient = schemes.includes("batch-settlement") ? new AnchorBatchPaymentClient(
   signer, process.env.PAYMENT_RPC_URL ?? "https://api.devnet.solana.com",
-  new FileBatchClientStorage(process.env.BATCH_CLIENT_STORE_FILE ?? ".batch-client-channels.json"),
+  new AtomicJsonStore<AnchorBatchClientRecord>(process.env.BATCH_CLIENT_STORE_FILE ?? ".local/anchor-batch-client.json"),
   batchDepositAmount,
 ) : undefined;
 const provider = process.env.AGENT_MODEL_PROVIDER ?? "ollama";

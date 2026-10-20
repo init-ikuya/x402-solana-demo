@@ -2,7 +2,7 @@ import type { ClientSvmSigner } from "@x402/svm";
 import type { AgentTool } from "./agent-core.js";
 import { AgentPaymentSession } from "./agent-payment-session.js";
 import type { ExactPaymentLimits } from "./exact-client.js";
-import type { BatchPaymentClient } from "./batch-client.js";
+import type { AnchorBatchPaymentClient } from "./anchor-batch-client.js";
 
 export type PaymentScheme = "exact" | "upto" | "batch-settlement" | "auth-capture";
 
@@ -14,7 +14,7 @@ export function createPaymentTools(options: {
   routes: Partial<Record<PaymentScheme, string>>;
   fetchImpl?: typeof fetch;
   rpcUrl?: string;
-  batchClient?: BatchPaymentClient;
+  batchClient?: AnchorBatchPaymentClient;
 }): AgentTool[] {
   const tools: AgentTool[] = [];
   for (const scheme of ["exact", "upto", "batch-settlement", "auth-capture"] as const) {

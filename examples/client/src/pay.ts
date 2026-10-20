@@ -2,7 +2,8 @@ import { AgentPaymentSession } from "./agent-payment-session.js";
 import { DEVNET_USDC } from "./exact-client.js";
 import { createDemoHttpTrace } from "./demo-http-trace.js";
 import { loadKeypair } from "./keypair.js";
-import { BatchPaymentClient, FileBatchClientStorage } from "./batch-client.js";
+import { AnchorBatchPaymentClient, type AnchorBatchClientRecord } from "./anchor-batch-client.js";
+import { AtomicJsonStore } from "../../shared/atomic-json-store.js";
 
 const scheme = process.env.PAYMENT_SCHEME ?? "exact";
 if (scheme !== "exact" && scheme !== "upto" && scheme !== "batch-settlement" && scheme !== "auth-capture") throw new Error("PAYMENT_SCHEME must be exact, upto, batch-settlement, or auth-capture");
@@ -33,10 +34,10 @@ const batchDepositAmount = BigInt(process.env.BATCH_DEPOSIT_AMOUNT ?? totalAmoun
 if (scheme === "batch-settlement" && (batchDepositAmount <= 0n || batchDepositAmount > BigInt(totalAmount))) {
   throw new Error("BATCH_DEPOSIT_AMOUNT must fit within AGENT_MAX_TOTAL_AMOUNT");
 }
-const batchClient = scheme === "batch-settlement" ? new BatchPaymentClient(
+const batchClient = scheme === "batch-settlement" ? new AnchorBatchPaymentClient(
   signer,
   process.env.PAYMENT_RPC_URL ?? "https://api.devnet.solana.com",
-  new FileBatchClientStorage(process.env.BATCH_CLIENT_STORE_FILE ?? ".batch-client-channels.json"),
+  new AtomicJsonStore<AnchorBatchClientRecord>(process.env.BATCH_CLIENT_STORE_FILE ?? ".local/anchor-batch-client.json"),
   batchDepositAmount,
 ) : undefined;
 const session = new AgentPaymentSession({

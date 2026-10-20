@@ -9,6 +9,7 @@ import { toFacilitatorSvmSigner } from "@x402/svm";
 import { generateKeyPairSigner } from "@solana/kit";
 import { DEVNET, DEVNET_USDC, EXACT_AMOUNT } from "../src/constants.js";
 import { createFacilitatorApp, type PaymentFacilitator } from "../src/facilitator.js";
+import { ANCHOR_BATCH_BINDING, ANCHOR_BATCH_PROGRAM } from "../../shared/anchor-batch.js";
 
 const payTo = "11111111111111111111111111111111";
 const feePayer = "CKPKJWNdJEqa81x7CkZ14BVPiY6y16Sxs7owznqtWYp5";
@@ -79,11 +80,11 @@ test("local facilitator forwards a scoped batch voucher", async () => {
   const batchRequirements: PaymentRequirements = {
     scheme: "batch-settlement", network: DEVNET, asset: DEVNET_USDC,
     amount: "1000", payTo, maxTimeoutSeconds: 300,
-    extra: { feePayer, voucherSigner: "client", assetTransferMethod: "channel", paymentFlow: "authorization" },
+    extra: { feePayer, voucherSigner: "client", assetTransferMethod: "channel", paymentFlow: "authorization", binding: ANCHOR_BATCH_BINDING, programId: ANCHOR_BATCH_PROGRAM },
   };
   const batchPayload: PaymentPayload = {
     x402Version: 2, accepted: batchRequirements,
-    payload: { type: "voucher", channelId: "channel-a" },
+    payload: { payer: "payer-a", channelId: "channel-a", cumulative: "1000", signature: "signature-a" },
   };
   const response = await fetch(`${base}/verify`, {
     method: "POST", headers: { "Content-Type": "application/json" },
@@ -101,7 +102,7 @@ test("local facilitator forwards a scoped batch voucher", async () => {
     method: "POST", headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       x402Version: 2,
-      paymentPayload: { ...batchPayload, payload: { type: "claim", claims: [] } },
+      paymentPayload: batchPayload,
       paymentRequirements: batchRequirements,
     }),
   });

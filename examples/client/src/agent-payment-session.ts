@@ -7,7 +7,7 @@ import {
 } from "./exact-client.js";
 import { payForUptoResource } from "./upto-client.js";
 import { payForAuthCaptureResource } from "./auth-capture-client.js";
-import { BatchPaymentClient } from "./batch-client.js";
+import { AnchorBatchPaymentClient } from "./anchor-batch-client.js";
 
 export type PaymentState = "reserved" | "outcome_unknown" | "settled" | "cancelled_before_submission";
 
@@ -134,7 +134,7 @@ export class AgentPaymentSession {
     url: string,
     limits: ExactPaymentLimits,
     signer: ClientSvmSigner,
-    client: BatchPaymentClient,
+    client: AnchorBatchPaymentClient,
     fetchImpl: typeof fetch = fetch,
   ): Promise<PaidResource> {
     return this.#pay("batch-settlement", (target, accepted, _signer, fetcher, options) =>

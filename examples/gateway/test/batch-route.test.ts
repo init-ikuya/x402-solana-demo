@@ -3,9 +3,8 @@ import { createServer, type Server } from "node:http";
 import type { AddressInfo } from "node:net";
 import { test } from "node:test";
 import { generateKeyPairSigner } from "@solana/kit";
-import { BatchSvmScheme as BatchServerScheme } from "@x402/svm/batch-settlement/server";
-import { BatchSvmScheme as BatchFacilitatorScheme } from "@x402/svm/batch-settlement/facilitator";
-import { toFacilitatorSvmSigner } from "@x402/svm";
+import { AnchorBatchServerScheme } from "../src/anchor-batch-server.js";
+import { ANCHOR_BATCH_BINDING, ANCHOR_BATCH_PROGRAM } from "../../shared/anchor-batch.js";
 import type { PaymentRequired } from "@x402/core/types";
 import { createApp } from "../src/app.js";
 import { DEVNET, DEVNET_USDC } from "../src/constants.js";
@@ -16,16 +15,15 @@ async function listen(server: Server): Promise<string> {
   return `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
 }
 
-test("batch route advertises the official client-signed channel binding", async t => {
+test("batch route advertises this repository's Anchor binding", async t => {
   const receiver = await generateKeyPairSigner();
   const sponsor = await generateKeyPairSigner();
-  const facilitatorScheme = new BatchFacilitatorScheme(toFacilitatorSvmSigner(sponsor));
   const facilitator = createServer((request, response) => {
     response.setHeader("Content-Type", "application/json");
     if (request.url === "/supported") response.end(JSON.stringify({
       kinds: [
         { x402Version: 2, scheme: "exact", network: DEVNET, extra: { feePayer: sponsor.address } },
-        { x402Version: 2, scheme: "batch-settlement", network: DEVNET, extra: facilitatorScheme.getExtra(DEVNET) },
+        { x402Version: 2, scheme: "batch-settlement", network: DEVNET, extra: { feePayer: sponsor.address, binding: ANCHOR_BATCH_BINDING, programId: ANCHOR_BATCH_PROGRAM } },
       ],
       extensions: [], signers: { "solana:*": [sponsor.address] },
     }));
@@ -35,7 +33,7 @@ test("batch route advertises the official client-signed channel binding", async 
   t.after(() => new Promise<void>(resolve => facilitator.close(() => resolve())));
   const gateway = createApp({
     payTo: receiver.address, facilitatorUrl,
-    batchScheme: new BatchServerScheme({ receiverAuthorizer: receiver }),
+    batchScheme: new AnchorBatchServerScheme(receiver.address),
   }).listen(0, "127.0.0.1");
   await new Promise<void>(resolve => gateway.once("listening", resolve));
   t.after(() => new Promise<void>(resolve => gateway.close(() => resolve())));
@@ -52,7 +50,8 @@ test("batch route advertises the official client-signed channel binding", async 
   assert.equal(quote.payTo, receiver.address);
   assert.equal(quote.amount, "1000");
   assert.equal(quote.extra.feePayer, sponsor.address);
-  assert.equal(quote.extra.receiverAuthorizer, receiver.address);
+  assert.equal(quote.extra.binding, ANCHOR_BATCH_BINDING);
+  assert.equal(quote.extra.programId, ANCHOR_BATCH_PROGRAM);
   assert.equal(quote.extra.voucherSigner, "client");
   assert.ok(quote.extra.paymentFlow === undefined || quote.extra.paymentFlow === "authorization");
   assert.equal(quote.extra.assetTransferMethod, "channel");

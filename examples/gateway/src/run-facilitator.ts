@@ -6,8 +6,8 @@ import { DEVNET } from "./constants.js";
 import { createFacilitatorApp } from "./facilitator.js";
 import { loadKeypair } from "./keypair.js";
 import { AnchorUptoFacilitatorScheme } from "./anchor-upto-facilitator.js";
-import { BatchSvmScheme } from "@x402/svm/batch-settlement/facilitator";
-import { FileBatchFacilitatorChannelStore, FileBatchPendingStore } from "./batch-facilitator-store.js";
+import { AnchorBatchFacilitatorScheme, type AnchorBatchRecord } from "./anchor-batch-facilitator.js";
+import { AtomicJsonStore } from "../../shared/atomic-json-store.js";
 import { ANCHOR_UPTO_PROGRAM } from "../../shared/anchor-upto.js";
 import { AnchorAuthCaptureFacilitatorScheme } from "./anchor-auth-capture-facilitator.js";
 
@@ -34,10 +34,16 @@ if (process.env.AUTH_CAPTURE_ENABLED === "1") {
   if (!deployed.value?.executable) throw new Error("Auth-capture Anchor program is not deployed at the facilitator RPC endpoint");
   facilitator.register(DEVNET, new AnchorAuthCaptureFacilitatorScheme(svmSigner, payTo));
 }
-if (process.env.BATCH_ENABLED === "1") facilitator.register(DEVNET, new BatchSvmScheme(svmSigner, {
-  channelStorage: new FileBatchFacilitatorChannelStore(process.env.BATCH_FACILITATOR_CHANNEL_STORE_FILE ?? ".batch-facilitator-channels.json"),
-  pendingSettlementStore: new FileBatchPendingStore(process.env.BATCH_PENDING_STORE_FILE ?? ".batch-facilitator-pending.json"),
-}));
+if (process.env.BATCH_ENABLED === "1") {
+  const deployed = await createSolanaRpc(rpcUrl).getAccountInfo(address(ANCHOR_UPTO_PROGRAM)).send();
+  if (!deployed.value?.executable) throw new Error("Anchor batch program is not deployed at the facilitator RPC endpoint");
+  const batch = new AnchorBatchFacilitatorScheme(svmSigner, payTo, rpcUrl,
+    new AtomicJsonStore<AnchorBatchRecord>(process.env.BATCH_FACILITATOR_STORE_FILE ?? ".local/anchor-batch-facilitator.json"));
+  facilitator.register(DEVNET, batch);
+  const seconds = Number(process.env.BATCH_REDEEM_INTERVAL_SECONDS ?? "30");
+  if (!Number.isSafeInteger(seconds) || seconds < 1) throw new Error("Invalid BATCH_REDEEM_INTERVAL_SECONDS");
+  setInterval(() => { void batch.redeem().catch(error => console.error("Batch redemption failed:", error)); }, seconds * 1000);
+}
 createFacilitatorApp(facilitator, payTo, signer.address).listen(port, "127.0.0.1", () => {
   console.log(`Payment facilitator listening at http://127.0.0.1:${port}`);
 });
