@@ -8,15 +8,15 @@ The project is intended for Demo Day at [Solana School: Fall Class](https://luma
 
 ## Demo scope and implementation languages
 
-- On-chain settlement: this repository's Rust/Anchor program for `upto` and experimental auth-capture escrow; the official Foundation channel program for the enabled SDK batch route. A separate Anchor batch recovery experiment is planned.
+- On-chain settlement: this repository's Rust/Anchor program for `upto`, batch settlement, and experimental auth-capture escrow. Issue #90 Closing recovery remains planned.
 - HTTP gateway: TypeScript. It returns payment requirements, verifies signed vouchers, calls the paid AI API, and submits settlement transactions.
 - AI agent: TypeScript. The demo must include an actual LLM tool-use loop, not just a scripted HTTP client.
 - The agent's payment tool handles HTTP 402 responses, signs vouchers within a configured spending limit, retries the request, and returns the result to the model. Signing keys remain in application code; they are never included in model prompts or tool results.
 - Run the gateway and agent locally for the initial demo, with the settlement program deployed to devnet. Public hosting and MCP integration are optional follow-ups.
 - Demonstrate an agent choosing the paid tool, completing a payment-authorized request, and using the returned answer, followed by on-chain settlement and refund of unused funds.
-- Use the same fictional Donald Trump "insider information" parody response as the paid resource for `exact`, `batch-settlement`, `upto`, and `auth-capture`. The routes are `/api/trump-insider` for `exact`, with opt-in `/upto`, `/batch`, and `/auth-capture` suffixes. The custom Anchor batch recovery remains planned; the auth-capture escrow binding is locally implemented. Present the answer as invented satire, never as a real non-public fact.
+- Use the same fictional Donald Trump "insider information" parody response as the paid resource for `exact`, `batch-settlement`, `upto`, and `auth-capture`. The routes are `/api/trump-insider` for `exact`, with opt-in `/upto`, `/batch`, and `/auth-capture` suffixes. Issue #90 Closing recovery remains planned; the auth-capture escrow binding is locally implemented. Present the answer as invented satire, never as a real non-public fact.
 
-The `exact`, `upto`, and official SDK batch gateway paths and local facilitator use Express and x402 SDKs; the separate payment CLI uses the SDK without Express. The `upto` HTTP flow is locally tested with a simulated facilitator; batch has local challenge, forwarding, and store tests, while a complete on-chain batch payout is not yet verified. The client also includes a model-driven tool loop with local LM Studio and Ollama adapters; automated tests use fake model responses, not live model inference. The custom Anchor batch recovery remains planned; an experimental escrow-only auth-capture adapter is integrated locally. Future custom Anchor settlement examples can use the standard TypeScript client with the program IDL; consider Codama later if generated clients are needed.
+The `exact` and custom Anchor gateway paths and local facilitator use Express and x402 SDKs; the separate payment CLI uses the SDK without Express. The `upto` HTTP flow is locally tested with a simulated facilitator; batch has LiteSVM and local-validator tests for deposit, voucher claims, and restart recovery. The client also includes a model-driven tool loop with local LM Studio and Ollama adapters; automated tests use fake model responses, not live model inference. Issue #90 Closing recovery remains planned; an experimental escrow-only auth-capture adapter is integrated locally. Future custom Anchor settlement examples can use the standard TypeScript client with the program IDL; consider Codama later if generated clients are needed.
 
 ## Example application layout
 
@@ -41,7 +41,7 @@ The [Issue #90](https://github.com/solana-foundation/payment-channels/issues/90)
 
 ## Implementation plan
 
-The agreed payment scope includes all four x402 schemes. The shared TypeScript transport and `exact` path were implemented first, followed by an opt-in `upto` HTTP path backed by this repository's Anchor program and an opt-in official SDK `batch-settlement` route. The custom Anchor batch experiment remains planned; an experimental escrow-only `auth-capture` route has local tests. See the [architecture implementation scope](ARCHITECTURE.md#four-scheme-implementation-scope-planned) for sources, per-scheme acceptance criteria, and binding boundaries. This supersedes the earlier voucher-only demo scope. It does not commit all four milestones to the Demo Day deadline.
+The agreed payment scope includes all four x402 schemes. The shared TypeScript transport and `exact` path were implemented first, followed by an opt-in `upto` HTTP path backed by this repository's Anchor program and an opt-in repository-backed Anchor `batch-settlement` route. Issue #90 Closing recovery remains planned; an experimental escrow-only `auth-capture` route has local tests. See the [architecture implementation scope](ARCHITECTURE.md#four-scheme-implementation-scope) for sources, per-scheme acceptance criteria, and binding boundaries. This supersedes the earlier voucher-only demo scope. It does not commit all four milestones to the Demo Day deadline.
 
 1. Establish the Rust and Anchor workspace with local integration tests.
 2. Review the upstream program and reference issue; document the baseline behavior and intended extensions.

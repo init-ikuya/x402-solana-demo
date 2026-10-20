@@ -1,8 +1,8 @@
 # Closing-period settlement — Issue #90
 
-This focused design belongs to the [four-scheme project](../../ARCHITECTURE.md). It details Issue #90 as a follow-up experiment; the integrated SDK batch-settlement route is documented in the [gateway guide](../../../examples/gateway/README.md). The [auth-capture track](../auth-capture/ARCHITECTURE.md) is the Demo Day presentation focus.
+This focused design belongs to the [four-scheme project](../../ARCHITECTURE.md). It details Issue #90 as a follow-up experiment; the integrated Anchor batch-settlement route is documented in the [gateway guide](../../../examples/gateway/README.md). The [auth-capture track](../auth-capture/ARCHITECTURE.md) is the Demo Day presentation focus.
 
-The demo now has a separate official-SDK batch route with a periodic facilitator-backed redemption worker. The direct merchant submission during Closing described below remains an unimplemented Anchor experiment; the SDK worker does not provide that #90 fallback.
+The demo now has a separate repository-backed Anchor batch route with a periodic facilitator redemption worker. The direct merchant submission during Closing described below remains an unimplemented experiment; the existing worker does not provide that #90 fallback.
 
 ## Design focus: Issue #90 (planned)
 

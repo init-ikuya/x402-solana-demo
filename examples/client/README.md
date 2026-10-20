@@ -1,14 +1,14 @@
 # x402 payment client
 
-This package contains the paying CLI, `exact`, repository-backed `upto`, official SVM `batch-settlement`, and experimental escrow-only `auth-capture` adapters, a per-process spending budget, and a model-driven payment agent. The CLI remains available for deterministic checks. See the [local LLM agent guide](AGENT.md) for LM Studio or Ollama setup and tool calling. The gateway and local facilitator are in [examples/gateway](../gateway/README.md), which documents the payment flows and local setup.
+This package contains the paying CLI, `exact`, repository-backed `upto`, repository-backed `batch-settlement`, and experimental escrow-only `auth-capture` adapters, a per-process spending budget, and a model-driven payment agent. The CLI remains available for deterministic checks. See the [local LLM agent guide](AGENT.md) for LM Studio or Ollama setup and tool calling. The gateway and local facilitator are in [examples/gateway](../gateway/README.md), which documents the payment flows and local setup.
 
 The [demo payment architecture](../../docs/demo-payment-architecture.md) shows how this client, the gateway, and the facilitator communicate.
 
 For Demo Day, the [browser demo](../../docs/topics/auth-capture/demo.md#browser-presentation) starts the same agent as a localhost child process and presents its auth-capture events, report, and answer graphically. Its samurai-styled buyer and satirical provider are presentation artwork; the paid API result remains fictional.
 
-The client uses `@x402/core` for the x402 HTTP envelope and `@x402/svm` for `exact`, batch settlement, and signer utilities, but does not use the Quickstart's `@x402/fetch` wrapper. It handles the initial 402 response and the paid retry explicitly so it can check the quoted network, asset, recipient, and amount, reserve the agent's budget before signing, and stop after an uncertain payment outcome instead of issuing another paid request. This is a demo policy choice; it does not imply that `@x402/fetch` is incompatible with these schemes.
+The client uses `@x402/core` for the x402 HTTP envelope and `@x402/svm` for `exact` and signer utilities, but does not use the Quickstart's `@x402/fetch` wrapper. It handles the initial 402 response and the paid retry explicitly so it can check the quoted network, asset, recipient, and amount, reserve the agent's budget before signing, and stop after an uncertain payment outcome instead of issuing another paid request. This is a demo policy choice; it does not imply that `@x402/fetch` is incompatible with these schemes.
 
-Run `npm ci` at the repository root, then copy `.env.example` to `.env`. Configure the expected `GATEWAY_PAY_TO` and a funded `PAYMENT_CLIENT_KEYPAIR_FILE`. The client accepts only the configured recipient, devnet USDC asset, Solana devnet network, and price within `PAYMENT_MAX_AMOUNT`. Its session budget limits the number and total amount of payments made in one process. `PAYMENT_SCHEME=exact` is the default; `upto` and `auth-capture` select this repository's Anchor escrow routes, while `batch-settlement` selects the official SVM batch route. `PAYMENT_RESOURCE_URL` can override the selected local route.
+Run `npm ci` at the repository root, then copy `.env.example` to `.env`. Configure the expected `GATEWAY_PAY_TO` and a funded `PAYMENT_CLIENT_KEYPAIR_FILE`. The client accepts only the configured recipient, devnet USDC asset, Solana devnet network, and price within `PAYMENT_MAX_AMOUNT`. Its session budget limits the number and total amount of payments made in one process. `PAYMENT_SCHEME=exact` is the default; `upto`, `batch-settlement`, and `auth-capture` select this repository's Anchor escrow routes. `PAYMENT_RESOURCE_URL` can override the selected local route.
 
 From the repository root, after starting the gateway and facilitator:
 
@@ -34,19 +34,19 @@ This is an escrow-only custom Solana binding. The generic `authorization` flow's
 
 ## Batch settlement
 
-The client uses the official SVM `batch-settlement` SDK binding. Set `PAYMENT_SCHEME=batch-settlement` or `AGENT_SCHEMES=batch-settlement` and configure the gateway's batch route. `BATCH_DEPOSIT_AMOUNT` is a positive number of atomic USDC units reserved in one reusable channel and must fit within the per-run total budget. `BATCH_CLIENT_STORE_FILE` holds confirmed and pending allocations across CLI restarts. Keep it on private persistent storage and use one client process per store. The spending budget resets on each run.
+The client uses the repository-backed `batch-settlement` SDK binding. Set `PAYMENT_SCHEME=batch-settlement` or `AGENT_SCHEMES=batch-settlement` and configure the gateway's batch route. `BATCH_DEPOSIT_AMOUNT` is a positive number of atomic USDC units reserved in one reusable channel and must fit within the per-run total budget. `BATCH_CLIENT_STORE_FILE` defaults to `.local/anchor-batch-client.json` and holds accepted and pending allocations across CLI restarts. Keep it on private persistent storage and use one client process per store. The spending budget resets on each run.
 
-Each successful batch request accepts a cumulative voucher commitment. Its commitment ID is not an on-chain payout signature; the gateway's background worker claims and distributes later.
+Each successful batch request accepts a cumulative voucher commitment. Its commitment ID is not an on-chain payout signature; the facilitator's background worker claims the authorized delta later.
 
 ### Close a batch channel
 
-Use the same payer key and client store as the paid requests. With the gateway and facilitator running, request cooperative close and return unused escrow:
+Use the same payer key and client store as the paid requests. After channel expiry and the five-minute claim grace period, return unused escrow directly:
 
 ```sh
 npm run batch:refund:env --workspace @anchoring-payment-channels/client
 ```
 
-If cooperative close is unavailable, the SDK may start payer-forced close. The on-chain withdraw delay must elapse before final distribution or refund. Check the returned transaction and channel status before retrying an uncertain close.
+The payer pays the close transaction fee. Claims are no longer accepted after the grace period. Check the returned transaction and channel status before retrying an uncertain close.
 
 For a recording or live walkthrough, set `PAYMENT_DEMO_TRACE=1` in the client `.env` and run either the CLI above or the [LLM agent](AGENT.md). The trace shows the initial GET, decoded `PAYMENT-REQUIRED` terms, the signed retry with `PAYMENT-SIGNATURE` redacted, the decoded `PAYMENT-RESPONSE` settlement, and a short JSON body preview. The CLI also prints the complete paid resource body. The trace does not print signed transaction bytes or private keys. `exact` charges 1000 atomic USDC units; this repository's `upto` route quotes a 1000-unit ceiling and settles the illustrative 300-unit charge. Turn the option off for normal runs. A local mock RPC trace is evidence of the HTTP flow, not a live Devnet transfer.
 

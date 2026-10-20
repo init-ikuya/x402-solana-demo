@@ -1,6 +1,6 @@
 # Demo payment architecture
 
-This document describes the current `exact`, repository-backed `upto`, official SVM `batch-settlement`, and experimental repository-backed `auth-capture` escrow routes. The auth-capture route is the Demo Day focus; see its [architecture](topics/auth-capture/ARCHITECTURE.md) and [demo runbook](topics/auth-capture/demo.md). The batch route is wired into the demo but its complete on-chain payout has not been verified. The custom Anchor #90 batch recovery remains proposed.
+This document describes the current `exact`, repository-backed `upto` and `batch-settlement`, and experimental repository-backed `auth-capture` escrow routes. The auth-capture route is the Demo Day focus; see its [architecture](topics/auth-capture/ARCHITECTURE.md) and [demo runbook](topics/auth-capture/demo.md). The Anchor batch route has been exercised through a real local validator; the separate Issue #90 Closing recovery remains proposed.
 
 ## Who communicates with whom
 
@@ -15,7 +15,7 @@ flowchart TB
     F <-->|"Solana RPC"| S
 ```
 
-The client has the paid API URL; the gateway has the facilitator URL in `GATEWAY_FACILITATOR_URL`. The client does not send HTTP requests directly to the facilitator. The gateway uses x402's `paymentMiddleware` and `x402ResourceServer` to delegate verification and settlement to the facilitator. The facilitator is neither the recipient nor the buyer. Submitting transactions and paying network fees does not give it the client's or merchant's signing authority.
+The client has the paid API URL; the gateway has the custom-scheme facilitator URL in `GATEWAY_FACILITATOR_URL`. The client does not send HTTP requests directly to the facilitator. The gateway uses x402's `paymentMiddleware` and `x402ResourceServer` to delegate verification and settlement. With `GATEWAY_MODE=devnet`, only `exact` goes to the public facilitator by default; the other schemes use the local service. The facilitator is neither the recipient nor the buyer. Submitting transactions and paying network fees does not give it the client's or merchant's signing authority.
 
 The default facilitator URL is the local `http://127.0.0.1:4022`. All enabled routes use this repository's local facilitator.
 
@@ -52,7 +52,7 @@ sequenceDiagram
     participant C as AI agent / client
     participant G as Gateway / paid API
     participant F as Local facilitator
-    participant S as Foundation channel program
+    participant S as This repository's Anchor program
     C->>G: GET /api/trump-insider/batch
     G-->>C: 402 PAYMENT-REQUIRED (batch, 1000 units)
     Note over C: Check terms and budget; open funded channel on first call
@@ -60,17 +60,16 @@ sequenceDiagram
     G->>F: Verify channel and authorization
     F-->>G: Valid channel state
     Note over G,F: On first call, settle deposit before serving
-    G->>G: Persist accepted voucher and serve API
+    F->>F: Persist accepted voucher
+    G->>G: Serve API
     G-->>C: 200 + paid JSON + voucher commitment
     loop Periodic redemption
-        G->>F: Claim highest accepted voucher
-        F->>S: Record cumulative claim
-        G->>F: Distribute newly claimed amount
-        F->>S: Pay confirmed delta
+        F->>S: Ed25519 verify + claim highest accepted voucher
+        S-->>G: Pay only the new amount to merchant
     end
 ```
 
-The first deposit requires on-chain confirmation before the paid handler runs. Later accepted vouchers authorize charges without per-request payout transactions; an empty `transaction` in the HTTP response is expected. The gateway persists channel state, runs a periodic claim/distribution worker, and the client persists its allocation. The client can request channel close and unused-fund refund with the [batch refund command](../examples/client/README.md#close-a-batch-channel). This route uses the SDK's official channel program, not this repository's Anchor program. Tests cover the challenge, facilitator forwarding, and store recovery; they do not prove a complete on-chain batch payout or live devnet transfer.
+The first deposit requires on-chain confirmation before the paid handler runs. Later accepted vouchers authorize charges without per-request payout transactions; a commitment ID is not a payout signature. The facilitator persists vouchers and runs a periodic claim worker; the client persists its allocation. After expiry and a five-minute claim grace period, anyone can close the channel and return unclaimed funds with the [batch refund command](../examples/client/README.md#close-a-batch-channel). This project-specific binding uses this repository's Anchor program, not the official SVM batch program. Local LiteSVM and validator runs cover claims; a live Devnet transfer is still unverified.
 
 ## `upto`: Deposit the ceiling, then settle the actual charge
 

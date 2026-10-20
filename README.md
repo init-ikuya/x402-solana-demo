@@ -6,9 +6,9 @@ This project is being developed for Demo Day at [Solana School: Fall Class](http
 
 ## Status
 
-The HTTP demo also has an opt-in `batch-settlement` route backed by `@x402/svm` 2.28.0 and the Solana Foundation payment-channels program. The client reuses a channel, the gateway stores cumulative vouchers and redeems them periodically, and a batch refund command closes unused escrow. This is separate from the proposed custom Anchor Issue #90 closing-recovery experiment, which remains unimplemented. Local persistence and unit tests are present; live devnet settlement has not been verified.
+The opt-in `batch-settlement` route now uses this repository's Anchor program. The payer opens one escrow channel and signs cumulative vouchers; the local facilitator stores accepted vouchers and later claims only the new amount on chain. An expiry plus grace period lets anyone close the channel and return unused escrow after claims are no longer valid. LiteSVM tests and a real local-validator run cover the channel, repeated paid requests, restart persistence, and redemption. The separate Issue #90 merchant recovery design remains unimplemented; Devnet has not been upgraded with these batch instructions.
 
-The Anchor program implements a single-request `upto` channel and a separate experimental `auth-capture` escrow payment. The auth-capture route confirms a 1000-unit hold before the paid API, then captures 300 and releases 700 atomically; a direct operation CLI supports merchant-funded refunds and payer reclaim. The browser agent, gateway, facilitator, deployed Anchor program, and a subsequent 100-unit merchant refund have been verified against a real local Solana validator using an unpegged test token. LiteSVM and simulated-RPC HTTP tests provide separate coverage. The TypeScript `exact`, `upto`, opt-in `batch-settlement`, and `auth-capture` examples connect the [gateway and local facilitator](examples/gateway/README.md) to a [budget-limited client and local LLM agent](examples/client/README.md). The batch path uses the official SVM binding. The custom program is deployed on Devnet at `4PpHEbD82o3bEtTYk478dcbTp4M4G9Q8Jqswcvoozq88`; Devnet payment settlement remains unverified.
+The Anchor program also implements a single-request `upto` channel and an experimental `auth-capture` escrow payment. The auth-capture route confirms a 1000-unit hold before the paid API, then captures 300 and releases 700 atomically; a direct operation CLI supports merchant-funded refunds and payer reclaim. The browser agent, gateway, facilitator, deployed Anchor program, and a subsequent 100-unit merchant refund have been verified against a real local Solana validator using an unpegged test token. The TypeScript examples connect the [gateway and facilitator](examples/gateway/README.md) to a [budget-limited client and local LLM agent](examples/client/README.md). An older version of the custom program is deployed on Devnet at `4PpHEbD82o3bEtTYk478dcbTp4M4G9Q8Jqswcvoozq88`; Devnet payment settlement remains unverified.
 
 The paid demo resource is a clearly fictional Donald Trump "insider information" parody, presented as an invented private briefing note with a distinct report ID per call. `exact` serves it at `/api/trump-insider`; opt-in `upto`, `batch-settlement`, and `auth-capture` serve the same format at their matching suffix routes. The agent includes the API's report IDs and headlines in its answer.
 
@@ -18,7 +18,7 @@ The paid demo resource is a clearly fictional Donald Trump "insider information"
 - Keep the payment-channels Issue #90 Closing recovery design separate from the running auth-capture route.
 - Document implementation choices, differences from upstream, and experiment results for the Demo Day presentation.
 - Build a TypeScript HTTP gateway and a TypeScript AI agent that demonstrates LLM tool use with payment authorization, paid API access, settlement, and refunds. See the [demo scope](docs/ideas.md#demo-scope-and-implementation-languages).
-- Implement all four x402 schemes in stages: `exact`, `batch-settlement`, `upto`, and `auth-capture`. The [implementation scope](docs/ARCHITECTURE.md#four-scheme-implementation-scope-planned) records specifications, compatibility boundaries, and acceptance criteria. The official SDK batch route is wired into the HTTP demo; the proposed custom Anchor Closing recovery remains unimplemented; an escrow-only auth-capture prototype is integrated locally.
+- Implement all four x402 schemes in stages: `exact`, `batch-settlement`, `upto`, and `auth-capture`. The [implementation scope](docs/ARCHITECTURE.md#four-scheme-implementation-scope) records specifications, compatibility boundaries, and acceptance criteria. The custom Anchor batch and auth-capture escrow routes are integrated locally; the proposed Closing recovery remains unimplemented.
 
 The upstream payment-channels implementation uses Pinocchio and provides an on-chain settlement layer for x402 and MPP payments. This repository's auth-capture binding is an independent educational experiment, not an official upstream implementation.
 
@@ -26,12 +26,12 @@ The upstream payment-channels implementation uses Pinocchio and provides an on-c
 
 See [ARCHITECTURE.md](docs/ARCHITECTURE.md) for the planned system architecture, Solana account relationship diagram, payment flow, and currently implemented accounts.
 
-The four HTTP schemes do not share one settlement program ID:
+The three escrow schemes share this repository's Anchor program ID:
 
 | Scheme | On-chain program used by this demo |
 | --- | --- |
 | `exact` | Standard SPL Token transfer through the official x402 SVM SDK. |
-| `batch-settlement` | Solana Foundation payment-channels program through the official x402 SVM SDK. |
+| `batch-settlement` | This repository's Anchor program, `4PpHEbD82o3bEtTYk478dcbTp4M4G9Q8Jqswcvoozq88`. |
 | `upto` | This repository's Anchor program, `4PpHEbD82o3bEtTYk478dcbTp4M4G9Q8Jqswcvoozq88`. |
 | `auth-capture` | The same repository Anchor program as `upto`, with separate instructions and account state. |
 
@@ -122,10 +122,10 @@ Only these public files are packaged; deployment keypairs are excluded. The lint
 
 Example applications:
 
-- `examples/gateway/`: TypeScript x402 `exact`, repository-backed `upto` and auth-capture escrow, and official SVM batch service and local facilitator. See its [setup guide](examples/gateway/README.md).
+- `examples/gateway/`: TypeScript x402 `exact` and repository-backed `upto`, batch, and auth-capture routes. See its [setup guide](examples/gateway/README.md).
 - `examples/client/`: TypeScript payment CLI, per-process spending controls, and a model-driven agent with local LM Studio and Ollama adapters.
 
-The `exact` and `batch-settlement` routes use the official x402 SVM SDK and do not need this Anchor program. The `upto` and experimental escrow-only `auth-capture` routes use this repository's Anchor program and local facilitator. Its Solana payload is not interoperable with the official SVM `upto` binding, which fixes a different program ID and instruction format.
+The `exact` route uses the official x402 SVM SDK. The other three routes use this repository's Anchor program and custom facilitator. Their Solana payloads are not interoperable with the official SVM bindings, which use different program IDs and instruction formats. For local experiments, use the local facilitator for every scheme. On Devnet, `GATEWAY_MODE=devnet` routes only `exact` to the public facilitator by default; the custom schemes still require this repository's facilitator connected to Devnet RPC. The public facilitator's current capability list advertises Devnet `exact`, not these custom bindings.
 
 The existing example is runnable from the repository root. The core settlement program is independent of these applications and of any AI provider.
 
