@@ -9,7 +9,7 @@ import {
 } from "@solana/kit";
 
 export const UPTO_SCHEME = "upto";
-export const ANCHOR_UPTO_PROGRAM = "TzMc42AtPM8FRnzQyfw2MV9qaD1ChAkMMVuW12jiurd";
+export const ANCHOR_UPTO_PROGRAM = "4PpHEbD82o3bEtTYk478dcbTp4M4G9Q8Jqswcvoozq88";
 export const TOKEN_PROGRAM = "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA";
 export const ASSOCIATED_TOKEN_PROGRAM = "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL";
 export const SYSTEM_PROGRAM = "11111111111111111111111111111111";

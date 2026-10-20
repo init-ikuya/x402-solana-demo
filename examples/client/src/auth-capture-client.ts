@@ -67,7 +67,9 @@ export async function payForAuthCaptureResource(
   if (!["http:", "https:"].includes(target.protocol)) throw new Error("Expected an HTTP URL");
   const initial = await fetchImpl(target);
   if (initial.status !== 402) throw new Error(`Expected HTTP 402, received ${initial.status}`);
-  const core = new x402Client((_version, requirements) => requirements[0]);
+  const core = new x402Client((_version, requirements) => requirements[0])
+    .setSpendControls({ allowedAssets: [{ network: DEVNET, asset: limits.asset,
+      maxAmountPerPayment: limits.maxAmount.toString() }] });
   core.register(DEVNET, new AuthCaptureClientScheme(signer, options.rpcUrl ?? "https://api.devnet.solana.com"));
   const http = new x402HTTPClient(core);
   let required: PaymentRequired;

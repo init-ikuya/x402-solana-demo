@@ -19,6 +19,7 @@ Thumbs.db
 
 # Rust and Anchor build artifacts and local keys
 /target/
+/.local/
 /.anchor/
 /test-ledger/
 /.surfpool/

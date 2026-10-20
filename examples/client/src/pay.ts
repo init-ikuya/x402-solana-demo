@@ -22,8 +22,8 @@ const requestCount = process.env.AGENT_REQUEST_COUNT ?? "1";
 if ((!secret && !keypairFile) || !payTo) {
   throw new Error("Set GATEWAY_PAY_TO and either PAYMENT_CLIENT_KEYPAIR_FILE or PAYMENT_CLIENT_SECRET_KEY");
 }
-if (!/^[1-9]\d*$/.test(maxAmount)) throw new Error("PAYMENT_MAX_AMOUNT must be positive atomic USDC units");
-if (!/^[1-9]\d*$/.test(totalAmount)) throw new Error("AGENT_MAX_TOTAL_AMOUNT must be positive atomic USDC units");
+if (!/^[1-9]\d*$/.test(maxAmount)) throw new Error("PAYMENT_MAX_AMOUNT must be positive atomic token units");
+if (!/^[1-9]\d*$/.test(totalAmount)) throw new Error("AGENT_MAX_TOTAL_AMOUNT must be positive atomic token units");
 if (!/^[1-9]\d*$/.test(maxPayments) || !Number.isSafeInteger(Number(maxPayments))) throw new Error("AGENT_MAX_PAYMENTS must be a positive safe integer");
 if (!/^[1-9]\d*$/.test(requestCount) || !Number.isSafeInteger(Number(requestCount))) throw new Error("AGENT_REQUEST_COUNT must be a positive safe integer");
 if (Number(requestCount) > Number(maxPayments)) throw new Error("AGENT_REQUEST_COUNT exceeds AGENT_MAX_PAYMENTS");
@@ -45,20 +45,21 @@ const session = new AgentPaymentSession({
   maxPayments: Number(maxPayments),
 });
 const fetchImpl = process.env.PAYMENT_DEMO_TRACE === "1" ? createDemoHttpTrace() : fetch;
+const rpcOptions = { rpcUrl: process.env.PAYMENT_RPC_URL };
 for (let request = 1; request <= Number(requestCount); request++) {
   try {
     const limits = { payTo, asset: DEVNET_USDC, maxAmount: BigInt(maxAmount) };
     const payment = scheme === "batch-settlement"
       ? session.payBatch(url, limits, signer, batchClient!, fetchImpl)
       : scheme === "upto"
-      ? session.payUpto(url, limits, signer, fetchImpl)
+      ? session.payUpto(url, limits, signer, fetchImpl, rpcOptions)
       : scheme === "auth-capture"
-      ? session.payAuthCapture(url, limits, signer, fetchImpl)
-      : session.payExact(url, limits, signer, fetchImpl);
+      ? session.payAuthCapture(url, limits, signer, fetchImpl, rpcOptions)
+      : session.payExact(url, limits, signer, fetchImpl, rpcOptions);
     const { response, settlement } = await payment;
     console.log(await response.text());
     const reference = settlement.transaction || session.records.at(-1)?.commitmentId;
-    console.log(`Payment ${request}: ${reference}; authorized/paid ${session.spent}/${session.budget.maxTotalAmount} atomic USDC units`);
+    console.log(`Payment ${request}: ${reference}; authorized/paid ${session.spent}/${session.budget.maxTotalAmount} atomic token units`);
     if (scheme === "auth-capture") console.log(`Auth-capture payment ID: ${session.records.at(-1)?.paymentId}`);
   } catch (error) {
     if (session.records.at(-1)?.state === "outcome_unknown") {

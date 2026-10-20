@@ -12,7 +12,7 @@ pub use constants::*;
 pub use instructions::*;
 pub use state::*;
 
-declare_id!("TzMc42AtPM8FRnzQyfw2MV9qaD1ChAkMMVuW12jiurd");
+declare_id!("4PpHEbD82o3bEtTYk478dcbTp4M4G9Q8Jqswcvoozq88");
 
 #[program]
 pub mod anchoring_payment_channels {

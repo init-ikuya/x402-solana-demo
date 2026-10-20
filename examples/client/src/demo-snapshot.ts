@@ -1,6 +1,6 @@
 import { tokenAddress } from "../../shared/anchor-upto.js";
 import { readAuthPayment } from "./auth-capture-operations.js";
-import { DEVNET_USDC } from "./constants.js";
+import { DEVNET, DEVNET_USDC } from "./constants.js";
 
 type RpcResult<T> = { context: { slot: number }; value: T };
 
@@ -37,7 +37,7 @@ async function wallet(address: string, url: string, fetchImpl: typeof fetch) {
   };
 }
 
-/** Read public Devnet account data only. Each RPC result may have a different slot. */
+/** Read configured RPC account data only. Each result may have a different slot. */
 export async function readDemoSnapshot(options: {
   payer: string; merchant: string; rpcUrl: string; paymentId?: string;
   fetchImpl?: typeof fetch;
@@ -67,5 +67,8 @@ export async function readDemoSnapshot(options: {
       nextOperation: state.nextOperation.toString(), holdClosed: state.holdClosed,
     };
   }
-  return { observedAt: new Date().toISOString(), commitment: "confirmed", payer, merchant, payment };
+  const rpcHost = new URL(options.rpcUrl).hostname;
+  const environment = rpcHost === "127.0.0.1" || rpcHost === "localhost" ? "local validator" : "Devnet";
+  return { observedAt: new Date().toISOString(), commitment: "confirmed", network: DEVNET,
+    environment, asset: DEVNET_USDC, payer, merchant, payment };
 }

@@ -8,7 +8,7 @@ This project is being developed for Demo Day at [Solana School: Fall Class](http
 
 The HTTP demo also has an opt-in `batch-settlement` route backed by `@x402/svm` 2.28.0 and the Solana Foundation payment-channels program. The client reuses a channel, the gateway stores cumulative vouchers and redeems them periodically, and a batch refund command closes unused escrow. This is separate from the proposed custom Anchor Issue #90 closing-recovery experiment, which remains unimplemented. Local persistence and unit tests are present; live devnet settlement has not been verified.
 
-The Anchor program implements a single-request `upto` channel and a separate experimental `auth-capture` escrow payment. The auth-capture route confirms a 1000-unit hold before the paid API, then captures 300 and releases 700 atomically; a direct operation CLI supports merchant-funded refunds and payer reclaim. LiteSVM and simulated-RPC HTTP tests cover the local path. The TypeScript `exact`, `upto`, opt-in `batch-settlement`, and `auth-capture` examples connect the [gateway and local facilitator](examples/gateway/README.md) to a [budget-limited client and local LLM agent](examples/client/README.md). The batch path uses the official SVM binding. Live Devnet settlement remains unverified.
+The Anchor program implements a single-request `upto` channel and a separate experimental `auth-capture` escrow payment. The auth-capture route confirms a 1000-unit hold before the paid API, then captures 300 and releases 700 atomically; a direct operation CLI supports merchant-funded refunds and payer reclaim. The browser agent, gateway, facilitator, deployed Anchor program, and a subsequent 100-unit merchant refund have been verified against a real local Solana validator using an unpegged test token. LiteSVM and simulated-RPC HTTP tests provide separate coverage. The TypeScript `exact`, `upto`, opt-in `batch-settlement`, and `auth-capture` examples connect the [gateway and local facilitator](examples/gateway/README.md) to a [budget-limited client and local LLM agent](examples/client/README.md). The batch path uses the official SVM binding. The custom program is deployed on Devnet at `4PpHEbD82o3bEtTYk478dcbTp4M4G9Q8Jqswcvoozq88`; Devnet payment settlement remains unverified.
 
 The paid demo resource is a clearly fictional Donald Trump "insider information" parody, presented as an invented private briefing note with a distinct report ID per call. `exact` serves it at `/api/trump-insider`; opt-in `upto`, `batch-settlement`, and `auth-capture` serve the same format at their matching suffix routes. The agent includes the API's report IDs and headlines in its answer.
 
@@ -26,9 +26,20 @@ The upstream payment-channels implementation uses Pinocchio and provides an on-c
 
 See [ARCHITECTURE.md](docs/ARCHITECTURE.md) for the planned system architecture, Solana account relationship diagram, payment flow, and currently implemented accounts.
 
+The four HTTP schemes do not share one settlement program ID:
+
+| Scheme | On-chain program used by this demo |
+| --- | --- |
+| `exact` | Standard SPL Token transfer through the official x402 SVM SDK. |
+| `batch-settlement` | Solana Foundation payment-channels program through the official x402 SVM SDK. |
+| `upto` | This repository's Anchor program, `4PpHEbD82o3bEtTYk478dcbTp4M4G9Q8Jqswcvoozq88`. |
+| `auth-capture` | The same repository Anchor program as `upto`, with separate instructions and account state. |
+
 For the running demo, see the [client–gateway–facilitator architecture](docs/demo-payment-architecture.md), including the auth-capture request sequence.
 
 The [auth-capture presentation](docs/topics/auth-capture/slides.md) is the Demo Day focus. A local [browser front end](examples/client/demo/index.html) displays the real agent's tool choice, x402 exchange, paid report, and answer, with a samurai-styled buyer and satirical provider. It explains the locally tested escrow binding and its limits. The proposed [Issue #90 Closing recovery](docs/topics/closing-settlement/ARCHITECTURE.md) remains separate design reference material.
+
+The [local validator rehearsal](docs/topics/auth-capture/demo.md#real-local-validator-rehearsal) includes a 38-second browser recording of autonomous payment followed by a merchant refund. Its MP4 is kept locally under ignored `.local/local-demo/` and is not published with the repository.
 
 ## Upstream
 
@@ -41,8 +52,10 @@ Install Rust via rustup, Anchor CLI 1.2.0, and the Solana CLI with `cargo build-
 Build the program and generate its IDL:
 
 ```sh
-anchor build --arch v0
+anchor build --arch v0 --tools-version v1.57 --ignore-keys
 ```
+
+The program has been deployed on Devnet with an upgrade authority. Run `bash scripts/deploy-devnet.sh --check` to verify the program ID, build artifact, and current Devnet balance before an upgrade. See the [Devnet validation steps](docs/topics/auth-capture/demo.md#development-only-live-devnet-validation). The script's `--deploy` mode submits a new program version to the same address.
 
 Run the Rust integration test against the compiled program in LiteSVM:
 

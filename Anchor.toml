@@ -8,7 +8,10 @@ resolution = true
 skip-lint = false
 
 [programs.localnet]
-anchoring_payment_channels = "TzMc42AtPM8FRnzQyfw2MV9qaD1ChAkMMVuW12jiurd"
+anchoring_payment_channels = "4PpHEbD82o3bEtTYk478dcbTp4M4G9Q8Jqswcvoozq88"
+
+[programs.devnet]
+anchoring_payment_channels = "4PpHEbD82o3bEtTYk478dcbTp4M4G9Q8Jqswcvoozq88"
 
 [provider]
 cluster = "localnet"

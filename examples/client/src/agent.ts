@@ -69,7 +69,7 @@ try {
   });
   console.log(result.answer);
   console.log(`API reports used: ${paidReportEvidence(result.toolResults).map(report => report.reportId).join(", ")}`);
-  console.log(`Completed paid requests: ${session.records.filter(record => record.state === "settled").length}; authorized/paid ${session.spent}/${session.budget.maxTotalAmount} atomic USDC units`);
+  console.log(`Completed paid requests: ${session.records.filter(record => record.state === "settled").length}; authorized/paid ${session.spent}/${session.budget.maxTotalAmount} atomic token units`);
 } catch (error) {
   if (session.records.at(-1)?.state === "outcome_unknown") {
     console.error("Payment outcome unknown. Check the facilitator and transaction history before retrying.");

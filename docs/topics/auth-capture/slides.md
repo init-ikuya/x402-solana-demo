@@ -161,7 +161,7 @@ style: |
 
 <div class="checks"><div class="check"><b>01 · Authority</b><p>Reject wrong signers and changed<br>recipient, mint, or token accounts.</p></div><div class="check"><b>02 · Accounting</b><p>Bound captures by the hold;<br>bound refunds by captured funds.</p></div><div class="check"><b>03 · Time and replay</b><p>Test deadline boundaries,<br>duplicate funding and operations.</p></div><div class="check"><b>04 · Recovery</b><p>Test restart, timeout, abandonment,<br>and insufficient refund liquidity.</p></div></div>
 <div class="band">A failed transfer must not advance the payment counters.</div>
-<div class="sources">Local evidence: <a href="../../../programs/anchoring-payment-channels/tests/test_auth_capture.rs">LiteSVM tests</a> · <a href="../../../examples/gateway/test/anchor-auth-capture.integration.test.ts">HTTP integration test</a><br>Live Devnet balance reconciliation remains unverified.</div>
+<div class="sources">Local evidence: validator recording with confirmed balance changes · <a href="../../../programs/anchoring-payment-channels/tests/test_auth_capture.rs">LiteSVM tests</a> · <a href="../../../examples/gateway/test/anchor-auth-capture.integration.test.ts">HTTP integration test</a><br>Live Devnet balance reconciliation remains unverified.</div>
 
 ---
 
@@ -169,7 +169,7 @@ style: |
 
 ## Start with escrow.<br>Track the remaining coverage.
 
-<div class="roadmap"><div class="card"><span class="tag">IMPLEMENTED · ESCROW</span><h3>Working prototype</h3><p>Anchor program, HTTP adapter, and browser-driven AI agent payment.</p></div><div class="steps"><div class="step"><span>✓</span> Hold, capture, void, reclaim</div><div class="step"><span>✓</span> Merchant-funded refund</div><div class="step"><span>→</span> Deploy and verify on Devnet</div><div class="step"><span>→</span> Specify direct charge separately</div></div></div>
+<div class="roadmap"><div class="card"><span class="tag">IMPLEMENTED · ESCROW</span><h3>Working prototype</h3><p>Anchor program, HTTP adapter, and browser-driven AI agent payment.</p></div><div class="steps"><div class="step"><span>✓</span> Hold, capture, void, reclaim</div><div class="step"><span>✓</span> Merchant-funded refund</div><div class="step"><span>✓</span> Program deployed on Devnet</div><div class="step"><span>→</span> Verify a Devnet payment</div></div></div>
 <div class="band">Experimental escrow binding; no official SVM interoperability claim.</div>
 <div class="sources"><a href="../../../programs/anchoring-payment-channels/src/auth_capture.rs">Anchor program</a> · <a href="ARCHITECTURE.md#binding-and-implementation-milestones">Roadmap</a> · <a href="https://github.com/x402-foundation/x402/blob/main/specs/schemes/auth-capture/scheme_auth_capture.md">Scheme flows</a><br>The separate <a href="../closing-settlement/ARCHITECTURE.md">Issue #90 design</a> does not define this binding.</div>
 
@@ -187,7 +187,7 @@ style: |
 
 <div class="arch-row"><div class="node"><b>Agent / client</b><p>Checks quote and budget<br>Signs the payment</p></div><div class="arrow">⇄</div><div class="node"><b>Gateway / API</b><p>Returns 402 and report<br>Calls the facilitator</p></div><div class="arrow">⇄</div><div class="node"><b>Facilitator</b><p>Checks authorization<br>Submits to Solana</p></div></div>
 <div class="demo-steps"><div>1 · Client ↔ gateway: GET → auth-capture 402 → signed hold retry.</div><div>2 · Gateway ↔ facilitator: confirm payer hold before the handler.</div><div>3 · Merchant ↔ facilitator: capture 300 and release 700 atomically.</div><div>4 · Gateway → client: paid JSON + PAYMENT-RESPONSE and payment ID.</div></div>
-<div class="sources">Demo: <a href="demo.md">runbook</a> · <a href="../../../examples/gateway/src/app.ts">gateway middleware</a> · <a href="../../../examples/client/src/payment-tools.ts">agent payment tools</a><br>Later refunds are outside the one-minute browser demo. Local HTTP tests use simulated RPC.</div>
+<div class="sources">Demo: <a href="demo.md">runbook</a> · <a href="../../../examples/gateway/src/app.ts">gateway middleware</a> · <a href="../../../examples/client/src/payment-tools.ts">agent payment tools</a><br>The recorded local validator demo includes a later merchant-initiated refund; HTTP tests separately use simulated RPC.</div>
 
 ---
 
@@ -199,7 +199,7 @@ style: |
 
 <div class="grid two">
 <div class="card"><h3>Does the agent need a wallet?</h3><p>Yes. The app signs with a local Solana keypair. The model calls a paid API tool; it never receives the key.</p></div>
-<div class="card"><h3>Which network do we use?</h3><p>The x402 FAQ lists Base and Solana. The live demo targets Solana Devnet USDC; local tests use simulated RPC.</p></div>
+<div class="card"><h3>Which network do we use?</h3><p>The recorded payment uses a local validator and test token. The program is on Devnet; a Devnet USDC payment is next to verify.</p></div>
 <div class="card"><h3>What does the facilitator do?</h3><p>It verifies and submits payments. This demo runs a separate local facilitator that sponsors transactions.</p></div>
 <div class="card"><h3>Can x402 handle fiat or cards?</h3><p>Not natively. Third-party gateways can add those rails; this demo does not.</p></div>
 </div>

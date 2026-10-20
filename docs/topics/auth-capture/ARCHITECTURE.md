@@ -7,9 +7,9 @@ This is the main Demo Day architecture track. The repository still targets all f
 | Part | Current evidence |
 | --- | --- |
 | Escrow program | `authorize_hold`, partial `capture_hold`, atomic `capture_and_void_hold`, `void_hold`, payer-only `reclaim_hold`, and merchant-funded `refund_captured` are implemented. LiteSVM tests cover a successful partial capture/release/refund, deadline reclaim, invalid authority, overcharge, replay, duplicate funding, and insufficient refund liquidity. |
-| HTTP demo | The opt-in `/api/trump-insider/auth-capture` route advertises the experimental binding and deadlines. Client, gateway, and facilitator perform a 1000-unit hold followed by a synchronous 300-unit capture and 700-unit release. The HTTP integration test uses a simulated RPC. |
-| Later operations | The merchant or payer can submit direct signed lifecycle transactions with the client operation CLI. This is the binding's out-of-band path; later facilitator `/settle` calls are not implemented. |
-| Not implemented | The generic `authorization → charge` flow, official SVM interoperability, and live Devnet confirmation/balance reconciliation. |
+| HTTP demo | The opt-in `/api/trump-insider/auth-capture` route advertises the experimental binding and deadlines. The browser agent, gateway, facilitator, and deployed program completed a 1000-unit hold, synchronous 300-unit capture, and 700-unit release on a real local validator with a test token. The HTTP integration test separately uses simulated RPC. |
+| Later operations | The merchant or payer can submit direct signed lifecycle transactions with the client operation CLI. A 100-unit merchant-funded refund was confirmed on the local validator and shown in the browser's refreshed RPC panel. This is the binding's out-of-band path; later facilitator `/settle` calls are not implemented. |
+| Not implemented or verified | The generic `authorization → charge` flow, official SVM interoperability, and live Devnet payment/balance reconciliation. The custom program itself is deployed on Devnet. |
 
 The implemented path follows the generic [escrow lifecycle](https://github.com/x402-foundation/x402/blob/main/specs/schemes/auth-capture/scheme_auth_capture.md) but does **not** cover the full `auth-capture` scheme. The explicit experimental binding ID is `anchor-auth-capture-escrow-v1`; the demo supports one classic SPL mint, one merchant, associated token accounts, and zero protocol fees. The custom program does not contain the Issue #90 Closing settlement change.
 
@@ -183,7 +183,7 @@ The program allows `void` after the capture deadline as a voluntary release; `ca
 
 1. **Implemented locally:** experimental binding identity, immutable terms, payer funding transaction, merchant operation signatures, and operation sequence.
 2. **Implemented and locally tested:** authorize, capture, atomic capture-and-void, void, payer reclaim, and merchant-funded refund.
-3. **Implemented with local HTTP tests:** gateway/facilitator escrow route and agent payment tool. The direct operation CLI has not been verified on live Devnet.
+3. **Implemented with local HTTP tests and validator transactions:** gateway/facilitator escrow route, agent payment tool, and merchant refund. The direct operation CLI has not been verified on live Devnet.
 4. **Next validation:** record Devnet hold, capture/release, refund, and reclaim balances; test process restart and timeout reconciliation with real RPC.
 5. **Future scope:** specify and implement direct `charge` for the authorization flow, including maximum authorization, actual-amount server consent, and single-use collection.
 
@@ -194,6 +194,7 @@ Client authorization for a variable direct charge, exact HTTP error mapping, ope
 - **Locally tested:** successful deposit, partial capture, positive atomic capture-and-void, standalone void, direct deadline reclaim, and merchant-funded refund.
 - **Locally tested:** wrong operation authority, oversized capture/refund, stale sequence, duplicate funding, closed-hold replay, early reclaim, and insufficient merchant refund liquidity. LiteSVM assertions cover token balances and state counters.
 - **HTTP integration tested with simulated RPC:** 402 quote, payer-signed hold, facilitator submission, merchant-signed capture/release, and paid response. The handler runs only after simulated hold confirmation.
+- **Real local validator rehearsal:** the LM Studio agent initiated the paid request, the program finalized 300/700, and a later merchant operation refunded 100. Confirmed RPC reads showed payer −200, merchant +200, vault 0, and payment counters 1000/300/700/100 from the pre-payment baseline. The local harness uses an unpegged test token and the SDK's Devnet CAIP routing identifier with localhost RPC; these are not Devnet transfers.
 - **Still to test:** repeated partial captures/refunds, more account-substitution cases, exact deadline boundaries, process restart, and real RPC timeout reconciliation.
 - **Live Devnet evidence needed:** record signatures, payer/merchant/vault balances, fixture setup, and the deployed program ID before claiming live settlement.
 

@@ -1,6 +1,6 @@
 # Auth-Capture on Solana — speaker script
 
-Main English Demo Day talk: seven main slides, followed by an Appendix divider and two optional reference slides. Target 3 minutes 50 seconds, including a 60-second edited recording of the browser agent, leaving 10 seconds under the four-minute limit. Use the [slides](slides.md), [architecture](ARCHITECTURE.md), and [demo runbook](demo.md) together. Label a locally simulated run as such; call it a Devnet payment only after checking its transaction signatures and balances.
+Main English Demo Day talk: seven main slides, followed by an Appendix divider and two optional reference slides. Target about 3 minutes 28 seconds, including the recorded 38-second local validator demo, leaving room under the four-minute limit. Use the [slides](slides.md), [architecture](ARCHITECTURE.md), and [demo runbook](demo.md) together. Label the recording as a local validator transaction with a test token; Devnet payment remains unverified.
 
 ## Timing
 
@@ -9,14 +9,14 @@ Main English Demo Day talk: seven main slides, followed by an Appendix divider a
 | Slide 1 — problem and result | 20 |
 | Slide 2 — EVM/SVM gap | 25 |
 | Slide 3 — actors and authority | 20 |
-| Auth-capture demo walkthrough | 60 |
+| Auth-capture demo walkthrough | 38 |
 | Slide 4 — request lifecycle | 25 |
 | Slide 5 — money and refund | 20 |
 | Slide 6 — test evidence | 25 |
 | Slide 7 — limits and next validation | 20 |
 | Transitions | 15 |
 
-Total: 230 seconds. Rehearsal and video duration have not yet been measured.
+Total: 208 seconds. The recorded clip is 37.5 seconds; rehearse the spoken transitions separately.
 
 Read each quoted paragraph while the matching PDF page is visible. After page 3, switch to the recorded demo; resume the PDF at page 4 when the clip ends. Page 8 is the Appendix divider, and pages 9–10 are optional reference slides with no scripted lines.
 
@@ -36,7 +36,7 @@ Sources: [generic auth-capture specification](https://github.com/x402-foundation
 
 ## Recorded demo — after PDF page 3
 
-Use the [pre-recorded browser-agent demo and runbook](demo.md#browser-presentation) as the primary presentation path. Point to the 402 response with a 1000-unit ceiling, the redacted signed retry, and the paid report with a 300-unit settlement response and payment ID. Use the final seconds for recorded confirmed account counters if available. The UI's 700-unit remainder is calculated; show a verified Devnet balance record before claiming a real transfer. The clip may shorten waiting periods, so do not imply that its edited duration is the actual settlement latency. Keep refund, deadline reclaim, tests, and CLI operations in the slides or Q&A, outside this minute. No video has been recorded yet.
+Play the [38-second two-scene browser recording](demo.md#browser-presentation). Point to the 402 response with a 1000-unit ceiling, the redacted signed retry, and the paid report with a 300-unit settlement response. In the second scene, a **merchant-initiated** 100-unit refund is followed by a confirmed local RPC refresh: funded 1000, captured 300, released 700, refunded 100; payer −200 and merchant +200 from the pre-payment baseline. The agent initiates the paid request, while the merchant operation initiates the later refund. The test token is not pegged to a dollar. The clip uses real local validator transactions; it is not a Devnet transfer. Keep deadline reclaim and CLI details in Q&A.
 
 ## PDF page 4 — Request lifecycle
 
@@ -48,17 +48,17 @@ Use the [pre-recorded browser-agent demo and runbook](demo.md#browser-presentati
 
 ## PDF page 6 — Evidence
 
-> LiteSVM tests cover authority, amount bounds, replay, deadlines, and refund liquidity. The HTTP integration test uses simulated RPC. Devnet signatures and balances are still unverified, so the recording must be labeled according to the environment it actually uses.
+> LiteSVM tests cover authority, amount bounds, replay, deadlines, and refund liquidity. The HTTP integration test uses simulated RPC. Separately, the browser agent and merchant refund ran against a local validator with confirmed balance changes. Devnet remains unverified.
 
 ## PDF page 7 — Scope
 
-> Today's contribution is the escrow lifecycle on Solana. Direct charge and official interoperability remain outside scope. Next: deploy to Devnet, verify balances, and record the agent's payment. Thank you.
+> Today's contribution is the escrow lifecycle on Solana. The program is deployed on Devnet; a Devnet payment and balance check are next. Direct charge and official interoperability remain outside scope. Thank you.
 
 ## Presenter notes
 
 - The paid report is explicitly fictional parody, not real private information.
 - The example uses classic SPL Token, associated token accounts, one merchant, and zero protocol fees.
 - The merchant can refuse a refund or lack liquidity. The payer reclaim returns only funds still held.
-- The in-request capture is relayed through facilitator `/settle`; later refund, capture, void, or reclaim uses a direct transaction tool for development checks and is outside the browser presentation.
+- The in-request capture is relayed through facilitator `/settle`; the later refund uses a direct merchant-signed operation behind the browser recording. Do not imply that the agent requested the refund.
 - The custom auth-capture program does not implement [payment-channels Issue #90](https://github.com/solana-foundation/payment-channels/issues/90).
 - Avoid claims of first implementation or official SVM compatibility.

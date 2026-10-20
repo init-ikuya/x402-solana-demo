@@ -8,10 +8,23 @@ let completed = false;
 let beforeSnapshot;
 let paymentSeen = false;
 
+function flash(element) {
+  element.classList.remove("flash");
+  void element.offsetWidth;
+  element.classList.add("flash");
+}
+
+function setValue(id, value, highlight = $(id)) {
+  const element = $(id);
+  if (element.textContent === value) return;
+  element.textContent = value;
+  flash(highlight);
+}
+
 function atomicChange(now, before) {
   if (now === null || before === null) return "Change: unavailable";
   const delta = BigInt(now) - BigInt(before);
-  return "Change: " + (delta > 0n ? "+" : "") + delta + " atomic USDC";
+  return "Change: " + (delta > 0n ? "+" : "") + delta + " token units";
 }
 
 function sol(lamports) {
@@ -20,7 +33,7 @@ function sol(lamports) {
 }
 
 async function refreshAccounts() {
-  $("account-status").textContent = "Reading confirmed Devnet account state…";
+  $("account-status").textContent = "Reading confirmed Solana account state…";
   try {
     const response = await fetch("/snapshot", { cache: "no-store" });
     const snapshot = await response.json();
@@ -29,13 +42,16 @@ async function refreshAccounts() {
       $("account-status").textContent = snapshot.reason;
       return;
     }
+    const local = snapshot.environment === "local validator";
+    setValue("asset-status", local ? "Local validator · test token" : "Devnet · USDC");
+    $("asset-status").title = `Mint: ${snapshot.asset}`;
     if (!beforeSnapshot && !paymentSeen) beforeSnapshot = snapshot;
-    $("account-status").textContent = `Confirmed RPC read · ${new Date(snapshot.observedAt).toLocaleTimeString()} · slots ${snapshot.payer.slot} / ${snapshot.merchant.slot}`;
+    $("account-status").textContent = `Confirmed ${local ? "local" : "Devnet"} RPC read · ${new Date(snapshot.observedAt).toLocaleTimeString()} · slots ${snapshot.payer.slot} / ${snapshot.merchant.slot}`;
     for (const role of ["payer", "merchant"]) {
       const wallet = snapshot[role];
       $(role + "-address").textContent = wallet.address;
       $(role + "-address").title = wallet.address;
-      $(role + "-usdc").textContent = wallet.usdc ?? "No USDC token account";
+      setValue(role + "-usdc", wallet.usdc ?? "No token account");
       $(role + "-sol").textContent = "SOL: " + sol(wallet.lamports);
       $(role + "-delta").textContent = beforeSnapshot
         ? atomicChange(wallet.usdc, beforeSnapshot[role].usdc) : "Change: baseline pending";
@@ -44,7 +60,7 @@ async function refreshAccounts() {
       $("account-payment-id").textContent = snapshot.payment.id;
       $("account-payment-id").title = snapshot.payment.id;
       for (const field of ["funded", "captured", "released", "refunded"]) {
-        $(field).textContent = snapshot.payment[field];
+        setValue(field, snapshot.payment[field]);
       }
       $("vault-usdc").textContent = snapshot.payment.vaultUsdc ?? "Closed";
       $("hold-status").textContent = `Hold ${snapshot.payment.holdClosed ? "closed" : "open"} · next operation ${snapshot.payment.nextOperation}`;
@@ -63,7 +79,7 @@ function step(index) {
 }
 
 function status(message, error = false) {
-  $("status").textContent = message;
+  setValue("status", message);
   $("status").classList.toggle("error", error);
 }
 
@@ -88,7 +104,8 @@ function handleOutput(line) {
   const request = line.match(/^\[HTTP\] → (\w+) (\S+) (.*)$/);
   if (request) {
     const signed = request[3].includes("PAYMENT-SIGNATURE");
-    $(signed ? "signed-request" : "initial-request").textContent = `${request[1]} ${request[2]}`;
+    const id = signed ? "signed-request" : "initial-request";
+    setValue(id, `${request[1]} ${request[2]}`, $(id).closest(".http-state"));
   }
   if (line.startsWith("[AGENT] Selected tool:")) {
     step(0);
@@ -100,10 +117,10 @@ function handleOutput(line) {
     const quote = decodedAfter(line, "(decoded): ");
     if (quote && quote.scheme === "auth-capture" && /^\d+$/.test(quote.amount)) {
       ceiling = BigInt(quote.amount);
-      $("ceiling").textContent = ceiling.toString();
-      $("quote-detail").textContent = `Ceiling ${quote.amount} · capture deadline ${quote.captureDeadline ?? "—"}`;
+      setValue("ceiling", ceiling.toString());
+      $("quote-detail").textContent = `Ceiling ${quote.amount} atomic units`;
     }
-    $("initial-response").textContent = "HTTP 402 Payment Required";
+    setValue("initial-response", "HTTP 402 Payment Required", $("initial-response").closest(".http-state"));
     step(1);
     status("Gateway quoted an auth-capture hold");
     showEvent(line);
@@ -117,15 +134,16 @@ function handleOutput(line) {
   }
   if (line.includes("PAYMENT-RESPONSE")) {
     const payment = decodedAfter(line, "(decoded): ");
-    $("paid-response").textContent = (line.match(/← (\d+) PAYMENT-RESPONSE/) || [])[1]
-      ? `HTTP ${line.match(/← (\d+) PAYMENT-RESPONSE/)[1]}` : "Response received";
+    setValue("paid-response", (line.match(/← (\d+) PAYMENT-RESPONSE/) || [])[1]
+      ? `HTTP ${line.match(/← (\d+) PAYMENT-RESPONSE/)[1]}` : "Response received",
+    $("paid-response").closest(".http-state"));
     if (payment?.success === true && /^\d+$/.test(payment.amount)) {
       paymentSeen = true;
       charge = BigInt(payment.amount);
-      $("charge").textContent = charge.toString();
-      if (ceiling !== undefined && charge <= ceiling) $("remainder").textContent = (ceiling - charge).toString();
+      setValue("charge", charge.toString());
+      if (ceiling !== undefined && charge <= ceiling) setValue("remainder", (ceiling - charge).toString());
       if (typeof payment.paymentId === "string") $("payment-id").textContent = "Payment PDA: " + payment.paymentId;
-      $("paid-detail").textContent = `Charged ${payment.amount} · signature ${payment.transaction ?? "unavailable"}`;
+      $("paid-detail").textContent = `Captured ${payment.amount} · confirmed`;
       void refreshAccounts();
       step(3);
       status("Settlement response received");
@@ -140,6 +158,7 @@ function handleOutput(line) {
       $("report-content").hidden = false;
       $("report-id").textContent = report.reportId;
       $("report-headline").textContent = report.headline || report.title || "Paid report";
+      flash($("report-content").closest(".report"));
     }
     showEvent(line);
     return;
@@ -152,7 +171,8 @@ function handleOutput(line) {
   if (line.trim()) {
     answerLines.push(line);
     $("answer").classList.remove("placeholder");
-    $("answer").textContent = answerLines.join("\n");
+    setValue("answer", answerLines.join("\n").replace(/\*\*/g, "").replace(/ {2,}\n/g, "\n"),
+      $("answer").closest(".answer"));
   }
 }
 

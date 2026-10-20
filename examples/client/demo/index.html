@@ -11,99 +11,84 @@
   <main class="shell">
     <header class="masthead">
       <div>
-        <p class="eyebrow">x402 on Solana · Demo Day</p>
-        <h1>See the agent.<br><span>Follow the payment.</span></h1>
-        <p class="intro">One paid API call, one bounded hold, one actual charge. The app signs; the model chooses the tool.</p>
+        <p id="scene-label" class="eyebrow">01 / AGENT PAYMENT · x402 ON SOLANA</p>
+        <h1>Watch the payment.</h1>
+        <p class="intro">The agent chooses a paid API. The app controls the wallet.</p>
       </div>
       <div class="run-panel">
         <span id="status" class="status">Ready for one paid request</span>
         <button id="run" type="button">Run auth-capture demo <span aria-hidden="true">↗</span></button>
-        <p>This starts a real request against your configured local gateway and RPC. One run is allowed per server start.</p>
       </div>
     </header>
 
     <section class="characters" aria-label="Payment participants">
-      <div class="character-card">
-        <img src="/client.svg" width="138" height="150" alt="Samurai-styled client agent">
-        <div><span class="role">THE BUYER</span><h2>Samurai agent</h2><p>Chooses the tool, checks the budget, and signs the hold.</p></div>
-      </div>
-      <div class="exchange" aria-label="Payment for report">
-        <span>bounded hold</span>
-        <div class="exchange-line" aria-hidden="true"><i></i><b>⇄</b><i></i></div>
-        <span>fictional report</span>
-      </div>
-      <div class="character-card provider">
-        <div><span class="role">THE API PROVIDER</span><h2>Parody president</h2><p>Serves the fictional report and authorizes the actual charge.</p></div>
-        <img src="/provider.svg" width="138" height="150" alt="Satirical blond provider in a navy suit and red tie">
-      </div>
+      <div class="character-card"><img src="/client.svg" width="88" height="96" alt="Samurai-styled client agent"><div><span class="role">BUYER · AI AGENT</span><h2>Samurai agent</h2></div></div>
+      <div class="exchange" aria-label="Payment for report"><span>bounded hold</span><b aria-hidden="true">⇄</b><span>fictional report</span></div>
+      <div class="character-card provider"><div><span class="role">MERCHANT · API PROVIDER</span><h2>Parody president</h2></div><img src="/provider.svg" width="88" height="96" alt="Satirical blond provider in a navy suit and red tie"></div>
     </section>
 
     <section class="flow-section" aria-labelledby="flow-title">
-      <div class="section-heading">
-        <div><p class="eyebrow dark">01 / PAYMENT LIFECYCLE</p><h2 id="flow-title">What happens, in order</h2></div>
-        <span class="binding">Experimental escrow binding</span>
-      </div>
+      <div class="section-heading"><h2 id="flow-title">One request, four steps</h2><span id="asset-status" class="environment">Network and asset pending</span></div>
       <ol class="steps">
-        <li id="step-tool"><span class="step-number">01</span><strong>Agent selects tool</strong><small>The model asks the app to call the paid API.</small></li>
-        <li id="step-quote"><span class="step-number">02</span><strong>Gateway quotes</strong><small>HTTP 402 sets the ceiling and deadlines.</small></li>
-        <li id="step-sign"><span class="step-number">03</span><strong>Payer signs hold</strong><small>The app checks the terms and retries.</small></li>
-        <li id="step-paid"><span class="step-number">04</span><strong>Merchant finalizes</strong><small>The paid result follows confirmed settlement.</small></li>
+        <li id="step-tool"><span class="step-number">01</span><strong>Agent selects tool</strong></li>
+        <li id="step-quote"><span class="step-number">02</span><strong>HTTP 402 quote</strong></li>
+        <li id="step-sign"><span class="step-number">03</span><strong>Payer signs hold</strong></li>
+        <li id="step-paid"><span class="step-number">04</span><strong>Merchant settles</strong></li>
       </ol>
       <div class="money">
-        <div><span>Authorized ceiling</span><strong id="ceiling">—</strong><small>atomic USDC units</small></div>
-        <div><span>Captured charge</span><strong id="charge">—</strong><small>from settlement response</small></div>
-        <div><span>Unused hold</span><strong id="remainder">—</strong><small>ceiling minus charge</small></div>
+        <div><span>Authorized hold</span><strong id="ceiling">—</strong></div>
+        <div><span>Captured</span><strong id="charge">—</strong></div>
+        <div><span>Released</span><strong id="remainder">—</strong></div>
       </div>
-      <p class="evidence-note">The unused amount is calculated from the quote and settlement response. The account panel below reads balances separately from Devnet RPC.</p>
     </section>
 
     <section class="detail-grid" aria-label="HTTP exchange and on-chain state">
       <div class="panel exchange-panel">
-        <p class="eyebrow dark">02 / HTTP EXCHANGE</p>
-        <h2>Client ↔ gateway</h2>
-        <div class="http-pair"><div><span class="detail-label">INITIAL REQUEST</span><strong id="initial-request">Waiting for agent</strong><small>No payment header</small></div><div><span class="detail-label">GATEWAY RESPONSE</span><strong id="initial-response">—</strong><small id="quote-detail">Quote pending</small></div></div>
-        <div class="http-pair"><div><span class="detail-label">SIGNED RETRY</span><strong id="signed-request">—</strong><small>PAYMENT-SIGNATURE redacted</small></div><div><span class="detail-label">PAID RESPONSE</span><strong id="paid-response">—</strong><small id="paid-detail">Settlement pending</small></div></div>
+        <div class="section-heading"><h2>HTTP exchange</h2><span class="eyebrow dark">CLIENT ↔ GATEWAY</span></div>
+        <div class="http-pair">
+          <div class="http-state"><span class="detail-label">REQUEST</span><strong id="initial-request">Waiting for agent</strong><small>No payment header</small></div>
+          <div class="http-state"><span class="detail-label">QUOTE</span><strong id="initial-response">—</strong><small id="quote-detail">Waiting for HTTP 402</small></div>
+        </div>
+        <div class="http-pair">
+          <div class="http-state"><span class="detail-label">SIGNED RETRY</span><strong id="signed-request">—</strong><small>PAYMENT-SIGNATURE redacted</small></div>
+          <div class="http-state"><span class="detail-label">PAID RESPONSE</span><strong id="paid-response">—</strong><small id="paid-detail">Settlement pending</small></div>
+        </div>
       </div>
       <div class="panel account-panel">
-        <div class="account-heading"><div><p class="eyebrow dark">03 / LIVE DEVNET RPC</p><h2>Wallets & payment account</h2></div><button id="refresh" type="button">Refresh ↻</button></div>
+        <div class="section-heading account-heading"><h2>On-chain balances</h2><button id="refresh" type="button">Refresh ↻</button></div>
         <p id="account-status" class="account-status">Reading public account state…</p>
         <div class="wallet-grid">
-          <div><span class="detail-label">PAYER · SAMURAI</span><code id="payer-address">—</code><strong id="payer-usdc">—</strong><small>USDC atomic units</small><small id="payer-sol">SOL: —</small><small id="payer-delta">Change: —</small></div>
-          <div><span class="detail-label">MERCHANT · PROVIDER</span><code id="merchant-address">—</code><strong id="merchant-usdc">—</strong><small>USDC atomic units</small><small id="merchant-sol">SOL: —</small><small id="merchant-delta">Change: —</small></div>
+          <div class="wallet-card"><span class="detail-label">PAYER · SAMURAI</span><strong id="payer-usdc">—</strong><small id="payer-delta">Change: —</small></div>
+          <div class="wallet-card"><span class="detail-label">MERCHANT · PROVIDER</span><strong id="merchant-usdc">—</strong><small id="merchant-delta">Change: —</small></div>
         </div>
-        <div class="payment-account"><span class="detail-label">ESCROW PAYMENT PDA</span><code id="account-payment-id">No payment yet</code><div class="account-metrics"><span>Vault <b id="vault-usdc">—</b></span><span>Funded <b id="funded">—</b></span><span>Captured <b id="captured">—</b></span><span>Released <b id="released">—</b></span><span>Refunded <b id="refunded">—</b></span></div><small id="hold-status">Hold status: —</small></div>
-        <p class="evidence-note">Read-only RPC values at confirmed commitment. Individual account reads can come from different slots; changes compare snapshots from this page.</p>
+        <div class="payment-account">
+          <span class="detail-label">PAYMENT ACCOUNT · ATOMIC TOKEN UNITS</span>
+          <div class="account-metrics">
+            <span>Funded <b id="funded">—</b></span>
+            <span>Captured <b id="captured">—</b></span>
+            <span>Released <b id="released">—</b></span>
+            <span>Refunded <b id="refunded">—</b></span>
+          </div>
+        </div>
       </div>
     </section>
 
     <section class="result-grid">
-      <div class="panel report">
-        <p class="eyebrow dark">04 / PAID RESOURCE</p>
-        <h2>Fictional API report</h2>
-        <p id="report-empty" class="placeholder">The report appears after the paid request completes.</p>
-        <div id="report-content" hidden>
-          <span class="report-id" id="report-id"></span>
-          <h3 id="report-headline"></h3>
-          <p class="fictional">Parody content · fictional, not non-public information</p>
-        </div>
-      </div>
-      <div class="panel answer">
-        <p class="eyebrow dark">05 / AGENT ANSWER</p>
-        <h2>What the model says</h2>
-        <p id="answer" class="placeholder">Waiting for the agent to use the paid result.</p>
-        <p id="payment-id" class="payment-id"></p>
-      </div>
+      <div class="panel report"><p class="eyebrow dark">PAID RESOURCE</p><h2>Fictional API report</h2><p id="report-empty" class="placeholder">Waiting for the paid response.</p><div id="report-content" hidden><span class="report-id" id="report-id"></span><h3 id="report-headline"></h3><p class="fictional">Parody content · fictional</p></div></div>
+      <div class="panel answer"><p class="eyebrow dark">AGENT ANSWER</p><h2>What the model says</h2><p id="answer" class="placeholder">Waiting for the agent to use the paid result.</p></div>
     </section>
 
-    <section class="trace" aria-labelledby="trace-title">
-      <div class="section-heading">
-        <div><p class="eyebrow">06 / EVIDENCE</p><h2 id="trace-title">Live event trace</h2></div>
-        <span>Signed payloads are redacted</span>
+    <details class="technical">
+      <summary>Transaction details and event trace</summary>
+      <div class="technical-grid">
+        <div><span class="detail-label">PAYER ADDRESS</span><code id="payer-address">—</code><small id="payer-sol">SOL: —</small></div>
+        <div><span class="detail-label">MERCHANT ADDRESS</span><code id="merchant-address">—</code><small id="merchant-sol">SOL: —</small></div>
+        <div><span class="detail-label">PAYMENT PDA</span><code id="account-payment-id">No payment yet</code><small id="hold-status">Hold status: —</small></div>
+        <div><span class="detail-label">VAULT</span><strong id="vault-usdc">—</strong><small id="payment-id"></small></div>
       </div>
-      <div id="events" class="events" role="log" aria-live="polite">
-        <p class="placeholder">Events will appear here as the request runs.</p>
-      </div>
-    </section>
+      <p class="evidence-note">Read-only RPC values use confirmed commitment. Account reads can come from different slots. The released amount above is calculated from the quote and paid response; account counters are read separately.</p>
+      <div id="events" class="events" role="log" aria-live="polite"><p class="placeholder">Events will appear here as the request runs.</p></div>
+    </details>
   </main>
 </body>
 </html>
