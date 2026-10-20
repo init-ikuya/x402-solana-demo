@@ -1,7 +1,8 @@
 const $ = id => document.getElementById(id);
-const stepIds = ["tool", "quote", "sign", "paid"];
+const sequenceIds = ["request", "quote", "sign", "settle", "response", "refund"];
 const eventBox = $("events");
 const answerLines = [];
+const persistentHighlights = new Set(["charge", "remainder", "refunded"]);
 let ceiling;
 let charge;
 let completed = false;
@@ -14,11 +15,15 @@ function flash(element) {
   element.classList.add("flash");
 }
 
-function setValue(id, value, highlight = $(id)) {
+function setValue(id, value, highlight) {
   const element = $(id);
   if (element.textContent === value) return;
   element.textContent = value;
-  flash(highlight);
+  const target = highlight ?? element.closest(".seq-row, .wallet-card, .account-metrics span, .answer") ?? element;
+  if (paymentSeen && persistentHighlights.has(id) && (id !== "refunded" || value !== "0")) {
+    target.classList.add("changed");
+  }
+  flash(target);
 }
 
 function atomicChange(now, before) {
@@ -46,15 +51,17 @@ async function refreshAccounts() {
     setValue("asset-status", local ? "Local validator · test token" : "Devnet · USDC");
     $("asset-status").title = `Mint: ${snapshot.asset}`;
     if (!beforeSnapshot && !paymentSeen) beforeSnapshot = snapshot;
-    $("account-status").textContent = `Confirmed ${local ? "local" : "Devnet"} RPC read · ${new Date(snapshot.observedAt).toLocaleTimeString()} · slots ${snapshot.payer.slot} / ${snapshot.merchant.slot}`;
+    $("account-status").textContent = "Confirmed RPC state";
+    $("account-status").title = `Read at ${new Date(snapshot.observedAt).toLocaleTimeString()} · slots ${snapshot.payer.slot} / ${snapshot.merchant.slot}`;
     for (const role of ["payer", "merchant"]) {
       const wallet = snapshot[role];
       $(role + "-address").textContent = wallet.address;
       $(role + "-address").title = wallet.address;
       setValue(role + "-usdc", wallet.usdc ?? "No token account");
       $(role + "-sol").textContent = "SOL: " + sol(wallet.lamports);
-      $(role + "-delta").textContent = beforeSnapshot
-        ? atomicChange(wallet.usdc, beforeSnapshot[role].usdc) : "Change: baseline pending";
+      setValue(role + "-delta", beforeSnapshot
+        ? atomicChange(wallet.usdc, beforeSnapshot[role].usdc) : "Change: baseline pending",
+      $(role + "-usdc").closest(".wallet-card"));
     }
     if (snapshot.payment) {
       $("account-payment-id").textContent = snapshot.payment.id;
@@ -64,23 +71,38 @@ async function refreshAccounts() {
       }
       $("vault-usdc").textContent = snapshot.payment.vaultUsdc ?? "Closed";
       $("hold-status").textContent = `Hold ${snapshot.payment.holdClosed ? "closed" : "open"} · next operation ${snapshot.payment.nextOperation}`;
+      if (BigInt(snapshot.payment.refunded) > 0n) {
+        const firstRefund = $("seq-refund").hidden;
+        $("seq-refund").hidden = false;
+        setValue("refund-amount", snapshot.payment.refunded);
+        if (firstRefund) markSequence("refund");
+      }
     }
   } catch (error) {
     $("account-status").textContent = "Account read failed: " + error.message;
   }
 }
 
-function step(index) {
-  for (let i = 0; i < stepIds.length; i++) {
-    const item = $("step-" + stepIds[i]);
+function markSequence(stage) {
+  const index = sequenceIds.indexOf(stage);
+  for (let i = 0; i < sequenceIds.length; i++) {
+    const item = $("seq-" + sequenceIds[i]);
     item.classList.toggle("done", i < index);
     item.classList.toggle("active", i === index);
   }
+  flash($("seq-" + stage));
 }
 
 function status(message, error = false) {
-  setValue("status", message);
+  $("status").textContent = message;
   $("status").classList.toggle("error", error);
+}
+
+function activity(message, state = "working") {
+  $("activity-text").textContent = message;
+  $("agent-activity").classList.toggle("working", state === "working");
+  $("agent-activity").classList.toggle("complete", state === "complete");
+  $("agent-activity").classList.toggle("error", state === "error");
 }
 
 function showEvent(message, error = false) {
@@ -101,14 +123,27 @@ function decodedAfter(line, marker) {
 }
 
 function handleOutput(line) {
+  if (line.startsWith("[AGENT] Activity: ")) {
+    const stage = line.slice("[AGENT] Activity: ".length);
+    const messages = {
+      selecting_tool: "Model is deciding how to get the report…",
+      using_tool: "Payment tool is requesting the report…",
+      evaluating_report: "Model is evaluating the paid report…",
+      revising_answer: "Model is refining its verdict…",
+    };
+    if (messages[stage]) activity(messages[stage]);
+    showEvent(line);
+    return;
+  }
   const request = line.match(/^\[HTTP\] → (\w+) (\S+) (.*)$/);
   if (request) {
     const signed = request[3].includes("PAYMENT-SIGNATURE");
     const id = signed ? "signed-request" : "initial-request";
-    setValue(id, `${request[1]} ${request[2]}`, $(id).closest(".http-state"));
+    setValue(id, `${request[1]} ${request[2]}`, $(id).closest(".seq-row"));
+    markSequence(signed ? "sign" : "request");
+    activity(signed ? "Payment tool is retrying with a signed hold…" : "Payment tool is requesting the report…");
   }
   if (line.startsWith("[AGENT] Selected tool:")) {
-    step(0);
     status("Agent selected the paid tool");
     showEvent(line);
     return;
@@ -118,16 +153,17 @@ function handleOutput(line) {
     if (quote && quote.scheme === "auth-capture" && /^\d+$/.test(quote.amount)) {
       ceiling = BigInt(quote.amount);
       setValue("ceiling", ceiling.toString());
-      $("quote-detail").textContent = `Ceiling ${quote.amount} atomic units`;
     }
-    setValue("initial-response", "HTTP 402 Payment Required", $("initial-response").closest(".http-state"));
-    step(1);
+    setValue("initial-response", "HTTP 402 Payment Required", $("initial-response").closest(".seq-row"));
+    markSequence("quote");
+    activity("Payment tool is checking the hold quote…");
     status("Gateway quoted an auth-capture hold");
     showEvent(line);
     return;
   }
   if (line.includes("PAYMENT-SIGNATURE: [redacted]")) {
-    step(2);
+    markSequence("sign");
+    activity("Payment tool is retrying with a signed hold…");
     status("Payer-signed hold sent");
     showEvent(line);
     return;
@@ -136,16 +172,17 @@ function handleOutput(line) {
     const payment = decodedAfter(line, "(decoded): ");
     setValue("paid-response", (line.match(/← (\d+) PAYMENT-RESPONSE/) || [])[1]
       ? `HTTP ${line.match(/← (\d+) PAYMENT-RESPONSE/)[1]}` : "Response received",
-    $("paid-response").closest(".http-state"));
+    $("paid-response").closest(".seq-row"));
     if (payment?.success === true && /^\d+$/.test(payment.amount)) {
       paymentSeen = true;
       charge = BigInt(payment.amount);
       setValue("charge", charge.toString());
       if (ceiling !== undefined && charge <= ceiling) setValue("remainder", (ceiling - charge).toString());
       if (typeof payment.paymentId === "string") $("payment-id").textContent = "Payment PDA: " + payment.paymentId;
-      $("paid-detail").textContent = `Captured ${payment.amount} · confirmed`;
       void refreshAccounts();
-      step(3);
+      markSequence("settle");
+      setTimeout(() => markSequence("response"), 650);
+      activity("Payment tool received the paid response…");
       status("Settlement response received");
     } else status("Payment response needs inspection", true);
     showEvent(line);
@@ -170,6 +207,7 @@ function handleOutput(line) {
   }
   if (line.trim()) {
     answerLines.push(line);
+    activity("Verdict ready", "complete");
     $("answer").classList.remove("placeholder");
     setValue("answer", answerLines.join("\n").replace(/\*\*/g, "").replace(/ {2,}\n/g, "\n"),
       $("answer").closest(".answer"));
@@ -182,13 +220,15 @@ stream.onmessage = event => {
   if (data.kind === "start") {
     $("run").disabled = true;
     status("Agent is running");
+    activity("Starting the model…");
     showEvent("Agent run started");
   } else if (data.kind === "output") handleOutput(data.text);
   else if (data.kind === "done") {
     completed = true;
     $("run").disabled = true;
-    if (data.code === 0) step(4);
+    if (data.code === 0 && !$("seq-refund").hidden) markSequence("refund");
     status(data.code === 0 ? "Demo completed" : "Demo failed; inspect the server terminal", data.code !== 0);
+    if (data.code !== 0) activity("Agent run failed", "error");
     showEvent(data.code === 0 ? "Run complete" : "Run failed; inspect the server terminal", data.code !== 0);
     stream.close();
     void refreshAccounts();
@@ -201,6 +241,7 @@ stream.onerror = () => {
 $("run").addEventListener("click", async () => {
   $("run").disabled = true;
   status("Starting agent");
+  activity("Preparing the agent run…");
   await refreshAccounts();
   try {
     const response = await fetch("/run", { method: "POST" });
@@ -208,6 +249,7 @@ $("run").addEventListener("click", async () => {
   } catch (error) {
     $("run").disabled = false;
     status(error.message, true);
+    activity("Agent could not start", "error");
     showEvent(error.message, true);
   }
 });

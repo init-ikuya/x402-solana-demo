@@ -4,7 +4,7 @@ This runbook supports the [main slides](slides.md) and [speaker script](script.m
 
 ## Browser presentation
 
-The browser demo provides a visual front end for the **real** local agent process. It shows a samurai-styled client and a satirical blond API provider, then updates the tool selection, 402 quote, signed retry, settlement response, fictional report, and agent answer as they occur. The main screen keeps the four HTTP states, token balances, and payment counters together; updated values flash briefly. An expandable details section holds the public addresses, SOL balances, payment PDA, vault balance, and redacted event trace. The page reads a baseline before the run and displays wallet balance changes after settlement. Each RPC read may come from a different slot; the UI reports the observed slots and does not treat the calculated released amount as an independently checked token balance.
+The browser demo provides a visual front end for the **real** local agent process. A sequence diagram places the samurai-styled client and blond API provider on opposite lifelines. It highlights each message as it happens: request, 402 quote, signed retry, on-chain settlement, and paid response. A later merchant refund appears as another message. The agent activity strip reports observable stages such as model tool selection, payment tool execution, report evaluation, and verdict revision; it does not expose or invent private model reasoning. The side panel shows token balances and payment counters; updated values flash briefly. Below the diagram, the paid report provides source evidence while the agent gives a short verdict on whether the content is useful and what it cost, without copying the report fields. An expandable details section holds the public addresses, SOL balances, payment PDA, vault balance, and redacted event trace. The page reads a baseline before the run and displays wallet balance changes after settlement. Each RPC read may come from a different slot; the UI reports the observed slots and does not treat the calculated released amount as an independently checked token balance.
 
 ## Real local validator rehearsal
 
@@ -39,11 +39,11 @@ Pre-record the browser agent's payment and a separate merchant-initiated refund 
 
 | Time | Show | Claim supported |
 | --- | --- | --- |
-| 0–8 s | Play the recorded browser run from the agent's tool selection through the 402 and signed retry | The model selects the paid tool; the client authorizes the bounded hold. |
-| 8–25 s | Show the paid report, 300-unit charge, 700-unit release, and confirmed local account state | The merchant finalizes the payment after the authorized hold. |
-| 25–40 s | Show the merchant refund label and refreshed account panel | The 100-unit refund leaves a 200-unit net payment. |
+| 0–9 s | Follow the agent activity strip and the GET → 402 → signed retry arrows | The model selects the paid tool; the payment client authorizes the bounded hold. |
+| 9–20 s | Follow capture/release → 200, then the model evaluating the paid report | The merchant finalizes the payment after the authorized hold; the agent forms its own verdict. |
+| 20–38 s | Show the verdict, then the later refund arrow and refreshed account panel | The merchant-initiated 100-unit refund leaves a 200-unit net payment. |
 
-Do not switch to a payment CLI during the presentation; the merchant refund can run behind the scenes while the browser displays its confirmed result. Deadline reclaim remains a separate Q&A case. Call the recorded run a **local validator transaction**. The HTTP integration test separately uses simulated RPC, and the Rust test uses LiteSVM. Show a Devnet explorer only after recording actual Devnet signatures and checking balances. Never show wallet secrets or raw signed transaction bytes. The final 37.5-second local two-scene rehearsal is saved under ignored `.local/local-demo/auth-capture-local-final.mp4`.
+Do not switch to a payment CLI during the presentation; the merchant refund can run behind the scenes while the browser displays its confirmed result. Deadline reclaim remains a separate Q&A case. Call the recorded run a **local validator transaction**. The HTTP integration test separately uses simulated RPC, and the Rust test uses LiteSVM. Show a Devnet explorer only after recording actual Devnet signatures and checking balances. Never show wallet secrets or raw signed transaction bytes. The latest 38-second two-scene recording uses the client/provider sequence diagram, shows the agent's activity and independent verdict, and highlights updated account values. It is saved under ignored `.local/local-demo/auth-capture-activity.mp4`.
 
 ## Reproduce the local evidence
 

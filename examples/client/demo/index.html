@@ -12,8 +12,7 @@
     <header class="masthead">
       <div>
         <p id="scene-label" class="eyebrow">01 / AGENT PAYMENT · x402 ON SOLANA</p>
-        <h1>Watch the payment.</h1>
-        <p class="intro">The agent chooses a paid API. The app controls the wallet.</p>
+        <h1>Agent payment</h1>
       </div>
       <div class="run-panel">
         <span id="status" class="status">Ready for one paid request</span>
@@ -21,48 +20,44 @@
       </div>
     </header>
 
-    <section class="characters" aria-label="Payment participants">
-      <div class="character-card"><img src="/client.svg" width="88" height="96" alt="Samurai-styled client agent"><div><span class="role">BUYER · AI AGENT</span><h2>Samurai agent</h2></div></div>
-      <div class="exchange" aria-label="Payment for report"><span>bounded hold</span><b aria-hidden="true">⇄</b><span>fictional report</span></div>
-      <div class="character-card provider"><div><span class="role">MERCHANT · API PROVIDER</span><h2>Parody president</h2></div><img src="/provider.svg" width="88" height="96" alt="Satirical blond provider in a navy suit and red tie"></div>
-    </section>
-
-    <section class="flow-section" aria-labelledby="flow-title">
-      <div class="section-heading"><h2 id="flow-title">One request, four steps</h2><span id="asset-status" class="environment">Network and asset pending</span></div>
-      <ol class="steps">
-        <li id="step-tool"><span class="step-number">01</span><strong>Agent selects tool</strong></li>
-        <li id="step-quote"><span class="step-number">02</span><strong>HTTP 402 quote</strong></li>
-        <li id="step-sign"><span class="step-number">03</span><strong>Payer signs hold</strong></li>
-        <li id="step-paid"><span class="step-number">04</span><strong>Merchant settles</strong></li>
-      </ol>
-      <div class="money">
-        <div><span>Authorized hold</span><strong id="ceiling">—</strong></div>
-        <div><span>Captured</span><strong id="charge">—</strong></div>
-        <div><span>Released</span><strong id="remainder">—</strong></div>
-      </div>
-    </section>
-
-    <section class="detail-grid" aria-label="HTTP exchange and on-chain state">
-      <div class="panel exchange-panel">
-        <div class="section-heading"><h2>HTTP exchange</h2><span class="eyebrow dark">CLIENT ↔ GATEWAY</span></div>
-        <div class="http-pair">
-          <div class="http-state"><span class="detail-label">REQUEST</span><strong id="initial-request">Waiting for agent</strong><small>No payment header</small></div>
-          <div class="http-state"><span class="detail-label">QUOTE</span><strong id="initial-response">—</strong><small id="quote-detail">Waiting for HTTP 402</small></div>
+    <section class="main-grid" aria-label="Payment sequence and account state">
+      <div class="panel diagram">
+        <div class="section-heading"><h2>Payment sequence</h2><span id="asset-status" class="environment">Network and asset pending</span></div>
+        <div class="participants">
+          <div class="participant client"><img src="/client.svg" width="72" height="72" alt="Samurai-styled client agent"><div><span>CLIENT · AI AGENT</span><strong>Samurai agent</strong></div></div>
+          <div class="participant provider"><div><span>MERCHANT · API PROVIDER</span><strong>API provider</strong></div><img src="/provider.svg" width="72" height="72" alt="Blond API provider in a navy suit and red tie"></div>
         </div>
-        <div class="http-pair">
-          <div class="http-state"><span class="detail-label">SIGNED RETRY</span><strong id="signed-request">—</strong><small>PAYMENT-SIGNATURE redacted</small></div>
-          <div class="http-state"><span class="detail-label">PAID RESPONSE</span><strong id="paid-response">—</strong><small id="paid-detail">Settlement pending</small></div>
+        <div id="agent-activity" class="agent-activity" role="status" aria-live="polite"><span class="activity-dot" aria-hidden="true"></span><span class="activity-label">AGENT ACTIVITY</span><strong id="activity-text">Ready to inspect the request</strong></div>
+        <div class="sequence-lanes">
+          <div id="seq-request" class="seq-row to-provider">
+            <div class="seq-caption"><span>01 · REQUEST</span><strong id="initial-request">Waiting for agent</strong></div><div class="seq-arrow"></div>
+          </div>
+          <div id="seq-quote" class="seq-row to-client">
+            <div class="seq-caption"><span>02 · PAYMENT REQUIRED</span><strong id="initial-response">—</strong><small>Hold <b id="ceiling">—</b></small></div><div class="seq-arrow"></div>
+          </div>
+          <div id="seq-sign" class="seq-row to-provider">
+            <div class="seq-caption"><span>03 · SIGNED RETRY</span><strong id="signed-request">—</strong></div><div class="seq-arrow"></div>
+          </div>
+          <div id="seq-settle" class="seq-row internal">
+            <div class="seq-caption"><span>04 · ON-CHAIN SETTLEMENT</span><strong>Merchant captures <b id="charge">—</b></strong><small>Releases <b id="remainder">—</b> to client</small></div><div class="seq-arrow"></div>
+          </div>
+          <div id="seq-response" class="seq-row to-client">
+            <div class="seq-caption"><span>05 · PAID RESPONSE</span><strong id="paid-response">—</strong></div><div class="seq-arrow"></div>
+          </div>
+          <div id="seq-refund" class="seq-row to-client refund" hidden>
+            <div class="seq-caption"><span>06 · LATER MERCHANT REFUND</span><strong>Refund <b id="refund-amount">—</b> to client</strong></div><div class="seq-arrow"></div>
+          </div>
         </div>
       </div>
       <div class="panel account-panel">
-        <div class="section-heading account-heading"><h2>On-chain balances</h2><button id="refresh" type="button">Refresh ↻</button></div>
+        <div class="section-heading account-heading"><h2>On-chain state</h2><button id="refresh" type="button">Refresh ↻</button></div>
         <p id="account-status" class="account-status">Reading public account state…</p>
         <div class="wallet-grid">
           <div class="wallet-card"><span class="detail-label">PAYER · SAMURAI</span><strong id="payer-usdc">—</strong><small id="payer-delta">Change: —</small></div>
           <div class="wallet-card"><span class="detail-label">MERCHANT · PROVIDER</span><strong id="merchant-usdc">—</strong><small id="merchant-delta">Change: —</small></div>
         </div>
         <div class="payment-account">
-          <span class="detail-label">PAYMENT ACCOUNT · ATOMIC TOKEN UNITS</span>
+          <span class="detail-label">PAYMENT ACCOUNT</span>
           <div class="account-metrics">
             <span>Funded <b id="funded">—</b></span>
             <span>Captured <b id="captured">—</b></span>
@@ -74,8 +69,8 @@
     </section>
 
     <section class="result-grid">
-      <div class="panel report"><p class="eyebrow dark">PAID RESOURCE</p><h2>Fictional API report</h2><p id="report-empty" class="placeholder">Waiting for the paid response.</p><div id="report-content" hidden><span class="report-id" id="report-id"></span><h3 id="report-headline"></h3><p class="fictional">Parody content · fictional</p></div></div>
-      <div class="panel answer"><p class="eyebrow dark">AGENT ANSWER</p><h2>What the model says</h2><p id="answer" class="placeholder">Waiting for the agent to use the paid result.</p></div>
+      <div class="panel report"><h2>API report</h2><p id="report-empty" class="placeholder">Waiting for the paid response.</p><div id="report-content" hidden><span class="report-id" id="report-id"></span><h3 id="report-headline"></h3></div></div>
+      <div class="panel answer"><h2>Agent verdict</h2><p id="answer" class="placeholder">Waiting for the agent's assessment.</p></div>
     </section>
 
     <details class="technical">

@@ -37,7 +37,7 @@ The three escrow schemes share this repository's Anchor program ID:
 
 For the running demo, see the [client–gateway–facilitator architecture](docs/demo-payment-architecture.md), including the auth-capture request sequence.
 
-The [auth-capture presentation](docs/topics/auth-capture/slides.md) is the Demo Day focus. A local [browser front end](examples/client/demo/index.html) displays the real agent's tool choice, x402 exchange, paid report, and answer, with a samurai-styled buyer and satirical provider. It explains the locally tested escrow binding and its limits. The proposed [Issue #90 Closing recovery](docs/topics/closing-settlement/ARCHITECTURE.md) remains separate design reference material.
+The [auth-capture presentation](docs/topics/auth-capture/slides.md) is the Demo Day focus. A local [browser front end](examples/client/demo/index.html) shows the real agent's activity, the client/provider payment sequence, on-chain balances, paid report, and verdict, with a samurai-styled buyer and satirical provider. It explains the locally tested escrow binding and its limits. The proposed [Issue #90 Closing recovery](docs/topics/closing-settlement/ARCHITECTURE.md) remains separate design reference material.
 
 The [local validator rehearsal](docs/topics/auth-capture/demo.md#real-local-validator-rehearsal) includes a 38-second browser recording of autonomous payment followed by a merchant refund. Its MP4 is kept locally under ignored `.local/local-demo/` and is not published with the repository.
 

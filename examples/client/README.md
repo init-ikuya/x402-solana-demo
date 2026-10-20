@@ -4,7 +4,7 @@ This package contains the paying CLI, `exact`, repository-backed `upto`, reposit
 
 The [demo payment architecture](../../docs/demo-payment-architecture.md) shows how this client, the gateway, and the facilitator communicate.
 
-For Demo Day, the [browser demo](../../docs/topics/auth-capture/demo.md#browser-presentation) starts the same agent as a localhost child process and presents its auth-capture events, report, and answer graphically. Its samurai-styled buyer and satirical provider are presentation artwork; the paid API result remains fictional.
+For Demo Day, the [browser demo](../../docs/topics/auth-capture/demo.md#browser-presentation) starts the same agent as a localhost child process and presents its observable activity and auth-capture events in a client/provider sequence diagram, alongside the report, verdict, and on-chain account state. Its samurai-styled buyer and satirical provider are presentation artwork; the paid API result remains fictional.
 
 The client uses `@x402/core` for the x402 HTTP envelope and `@x402/svm` for `exact` and signer utilities, but does not use the Quickstart's `@x402/fetch` wrapper. It handles the initial 402 response and the paid retry explicitly so it can check the quoted network, asset, recipient, and amount, reserve the agent's budget before signing, and stop after an uncertain payment outcome instead of issuing another paid request. This is a demo policy choice; it does not imply that `@x402/fetch` is incompatible with these schemes.
 
@@ -57,7 +57,7 @@ An illustrative `upto` trace, shortened to the fields to point out during the de
 [HTTP] ← 402 PAYMENT-REQUIRED (decoded): {"scheme":"upto","amount":"1000",...}
 [HTTP] → GET /api/trump-insider/upto PAYMENT-SIGNATURE: [redacted]
 [HTTP] ← 200 PAYMENT-RESPONSE (decoded): {"success":true,"transaction":"...","amount":"300"}
-[HTTP] ← JSON body preview: {"reportId":"FICTION-...","headline":"...","fictional":true}
+[HTTP] ← JSON body preview: {"reportId":"REPORT-...","headline":"...","fictional":true}
 ```
 
 ## Recover an expired upto deposit
