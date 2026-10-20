@@ -16,7 +16,7 @@ Main English Demo Day talk: seven main slides, followed by an Appendix divider a
 | Slide 7 — limits and next validation | 20 |
 | Transitions | 15 |
 
-Total: 208 seconds. The recorded clip is 37.5 seconds; rehearse the spoken transitions separately.
+Total: 208 seconds. The recorded clip is 38.4 seconds; rehearse the spoken transitions separately.
 
 Read each quoted paragraph while the matching PDF page is visible. After page 3, switch to the recorded demo; resume the PDF at page 4 when the clip ends. Page 8 is the Appendix divider, and pages 9–10 are optional reference slides with no scripted lines.
 
@@ -26,7 +26,7 @@ Read each quoted paragraph while the matching PDF page is visible. After page 3,
 
 ## PDF page 2 — Specification and binding
 
-> Official x402 implements auth-capture for EVM, but has no published SVM implementation in the reviewed October 15 snapshot. Our Anchor program covers the escrow path, including later merchant-funded refunds and payer reclaim. This is a project-specific binding, not official SVM interoperability.
+> The x402 spec defines two payment flows. Escrow is the default: hold first, then capture or void, with later refund or payer reclaim. The alternative directly charges after the resource runs. We implemented the default escrow flow in Anchor. The official SDK has EVM support, but no published SVM implementation in the reviewed snapshot.
 
 Sources: [generic auth-capture specification](https://github.com/x402-foundation/x402/blob/faa1c694c66a3732aaabbce93bdae140e521a67d/specs/schemes/auth-capture/scheme_auth_capture.md), [EVM SDK source](https://github.com/x402-foundation/x402/tree/faa1c694c66a3732aaabbce93bdae140e521a67d/typescript/packages/mechanisms/evm/src/auth-capture), and [SVM SDK source](https://github.com/x402-foundation/x402/tree/faa1c694c66a3732aaabbce93bdae140e521a67d/typescript/packages/mechanisms/svm/src).
 
@@ -36,11 +36,19 @@ Sources: [generic auth-capture specification](https://github.com/x402-foundation
 
 ## Recorded demo — after PDF page 3
 
-Play the [38-second two-scene browser recording](demo.md#browser-presentation). Point to the 402 response with a 1000-unit ceiling, the redacted signed retry, and the paid report with a 300-unit settlement response. In the second scene, a **merchant-initiated** 100-unit refund is followed by a confirmed local RPC refresh: funded 1000, captured 300, released 700, refunded 100; payer −200 and merchant +200 from the pre-payment baseline. The agent initiates the paid request, while the merchant operation initiates the later refund. The test token is not pegged to a dollar. The clip uses real local validator transactions; it is not a Devnet transfer. Keep deadline reclaim and CLI details in Q&A.
+Play the [38-second two-scene browser recording](demo.md#browser-presentation). The sequence diagram puts the agent/client on the left and API provider/merchant on the right. The activity strip reports observed model and payment-tool stages; it is not a transcript of private reasoning. Read the following lines while the matching part of the clip is visible:
+
+| Video time | On screen | Say |
+| --- | --- | --- |
+| 0–9 s | Agent selects the tool; GET, 402, signed retry | “This is a local validator run. The model chooses a paid API tool. The client gets a 402 quote for a 1000-unit hold and retries with a payer signature.” |
+| 9–20 s | Capture 300, release 700, paid report, model evaluation | “The provider captures 300 and releases 700. The paid response arrives, and the model evaluates whether the report is actually useful.” |
+| 20–38 s | Agent verdict; later merchant refund and refreshed accounts | “The verdict finds no actionable information. Separately, the merchant refunds 100. The confirmed counters show a net payment of 200 token units.” |
+
+The later refund is **merchant-initiated**, not requested by the agent. The local test token is not pegged to a dollar, and this clip is not a Devnet transfer. Keep deadline reclaim and CLI details in Q&A.
 
 ## PDF page 4 — Request lifecycle
 
-> The facilitator confirms a 1000-unit hold before the API runs. After success, one transaction captures 300 and releases 700. If the task fails, the merchant voids the hold. An abandoned hold can be reclaimed after the deadline.
+> This is the spec's escrow ordering: settle the hold, run the resource, then settle capture and release. The client gets a 402 ceiling and retries with a signature. On failure, the merchant voids; after the capture deadline, the payer may reclaim any remaining hold.
 
 ## PDF page 5 — Money and refund
 
@@ -52,7 +60,7 @@ Play the [38-second two-scene browser recording](demo.md#browser-presentation). 
 
 ## PDF page 7 — Scope
 
-> Today's contribution is the escrow lifecycle on Solana. The program is deployed on Devnet; a Devnet payment and balance check are next. Direct charge and official interoperability remain outside scope. Thank you.
+> Today's contribution is the default escrow lifecycle on Solana. The program is deployed on Devnet; a Devnet payment and balance check are next. The alternative direct-charge flow is outside this implementation. Official SVM interoperability is still unverified. Thank you.
 
 ## Presenter notes
 

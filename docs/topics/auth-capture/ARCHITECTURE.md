@@ -11,7 +11,7 @@ This is the main Demo Day architecture track. The repository still targets all f
 | Later operations | The merchant or payer can submit direct signed lifecycle transactions with the client operation CLI. A 100-unit merchant-funded refund was confirmed on the local validator and shown in the browser's refreshed RPC panel. This is the binding's out-of-band path; later facilitator `/settle` calls are not implemented. |
 | Not implemented or verified | The generic `authorization → charge` flow, official SVM interoperability, and live Devnet payment/balance reconciliation. The custom program itself is deployed on Devnet. |
 
-The implemented path follows the generic [escrow lifecycle](https://github.com/x402-foundation/x402/blob/main/specs/schemes/auth-capture/scheme_auth_capture.md) but does **not** cover the full `auth-capture` scheme. The explicit experimental binding ID is `anchor-auth-capture-escrow-v1`; the demo supports one classic SPL mint, one merchant, associated token accounts, and zero protocol fees. The custom program does not contain the Issue #90 Closing settlement change.
+The implemented path follows the generic [escrow lifecycle](https://github.com/x402-foundation/x402/blob/main/specs/schemes/auth-capture/scheme_auth_capture.md), which is the scheme's default payment flow. The implementation supports that flow only; the generic specification also defines an alternative `authorization → charge` flow. Supporting both flows is broader coverage, not a prerequisite stated by the generic specification for an escrow-only network binding. The explicit experimental binding ID is `anchor-auth-capture-escrow-v1`; the demo supports one classic SPL mint, one merchant, associated token accounts, and zero protocol fees. The custom program does not contain the Issue #90 Closing settlement change.
 
 ## Evidence and scope
 
@@ -33,7 +33,7 @@ Show an agent authorizing a 1000-unit ceiling for the same fictional `/api/trump
 
 Start with the escrow flow, one recipient, one legacy SPL test mint with no transfer fees, integer token base units, and zero protocol fees. Use local TypeScript applications and LiteSVM for deterministic tests before a devnet demonstration. The merchant retains discretion over capture/refund; the program does not prove service quality or guarantee a merchant-funded refund when the merchant refuses or lacks funds.
 
-The broader auth-capture implementation must also address the authorization flow's direct `charge`. That requires its own client authorization design and tests; it is not silently treated as an escrow flow. A working escrow demo alone is not completion of the entire scheme.
+To cover both payment flows, a broader implementation would also need the authorization flow's direct `charge`. That requires its own client authorization design and tests; it is not silently treated as an escrow flow. The current escrow binding should be evaluated against the generic requirements for its supported flow, rather than described as implementing every defined flow.
 
 ## Actors and trust boundaries
 

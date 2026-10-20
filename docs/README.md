@@ -17,8 +17,8 @@
 These materials are for the Solana School: Fall Class Demo Day. The presentation is **in English and four minutes long**. A video or live walkthrough may use approximately one minute. Confirm the event date before exporting slides.
 
 - [Auth-capture slides](topics/auth-capture/slides.md): Main presentation with seven main slides and two optional slides. `---` separates slides.
-- [Auth-capture speaker script](topics/auth-capture/script.md): English narration, four-minute timing, and a one-minute auth-capture walkthrough.
-- [Browser demo runbook](topics/auth-capture/demo.md): Real local agent process, visual payment timeline, recorded presentation, and evidence limits.
+- [Auth-capture speaker script](topics/auth-capture/script.md): English narration, four-minute timing, and cues for the recorded sequence diagram.
+- [Browser demo runbook](topics/auth-capture/demo.md): Real local agent process, client/provider sequence, recorded presentation, and evidence limits.
 - Put any diagrams or screenshots in the relevant topic's `assets/` directory and reference them with relative paths.
 
 The slides are Markdown in [Marp](https://marp.app/) format. Diagrams and layout use HTML/CSS, so generation requires `--html`. The slides are 16:9 and have page numbers. Speaker scripts are separate files.
@@ -26,10 +26,10 @@ The slides are Markdown in [Marp](https://marp.app/) format. Diagrams and layout
 ## Current materials and timing
 
 - The main presentation focuses on the experimental auth-capture escrow route: hold, atomic capture/release, merchant-funded refund, payer reclaim, and local test evidence. The repository still targets four schemes.
-- The four-minute plan allocates 160 seconds to narration, 60 seconds to the browser auth-capture walkthrough, and 20 seconds to transitions. The walkthrough must label simulated RPC and LiteSVM output as local evidence. No video has been recorded or timed; live Devnet balances have not been verified.
+- The four-minute plan totals about 208 seconds, including a 38-second browser recording and 15 seconds for transitions. The clip shows real local validator transactions with a test token; HTTP integration and LiteSVM tests provide separate local evidence. Live Devnet payment balances have not been verified.
 - The Issue #83 alternative was dropped after reviewing the existing fix in PR #84.
 - HTML and PDFs are excluded from Git. Regenerate them after editing the Markdown sources.
-- Generated PDFs from earlier presentation drafts need regeneration after these Markdown changes. Reading time and walkthrough duration have not been measured.
+- Regenerate the ignored HTML and PDF after editing the Markdown slides. The recording has been timed; rehearse spoken transitions separately.
 
 ## Generate the architecture PDF
 
@@ -48,7 +48,7 @@ Run these commands from the repository root with Node.js and npm. The first run 
 npx --yes @marp-team/marp-cli@4.5.0 --html docs/topics/auth-capture/slides.md -o docs/topics/auth-capture/slides.html
 
 # PDF for distribution (requires a compatible browser such as Chrome, Edge, or Firefox)
-npx --yes @marp-team/marp-cli@4.5.0 --html docs/topics/auth-capture/slides.md --pdf -o docs/topics/auth-capture/slides.pdf
+npx --yes @marp-team/marp-cli@4.5.0 --allow-local-files --html docs/topics/auth-capture/slides.md --pdf -o docs/topics/auth-capture/slides.pdf
 ```
 
 Generated files are excluded from Git; Markdown remains the editable source.

@@ -76,6 +76,22 @@ style: |
   .chain { border-color: #b783f4; background: #302044; }
   .demo-steps { display: grid; gap: 10px; margin-top: 24px; }
   .demo-steps div { padding: 9px 16px; border-left: 3px solid #b783f4; background: #211a36; font-size: 20px; }
+  .sequence-slide { position: relative; margin: -6px 18px 0; padding: 0 75px; }
+  .sequence-slide::before, .sequence-slide::after { content: ''; position: absolute; top: 45px; bottom: 0; border-left: 2px dashed #795d9e; }
+  .sequence-slide::before { left: 75px; }
+  .sequence-slide::after { right: 75px; }
+  .sequence-actors { display: flex; justify-content: space-between; margin: 0 -75px 7px; color: #d7c1f7; font-size: 18px; font-weight: 700; }
+  .sequence-actors span:last-child { text-align: right; }
+  .sequence-slide-row { position: relative; isolation: isolate; height: 55px; text-align: center; font-size: 20px; }
+  .sequence-slide-row b { display: inline-block; padding: 0 8px; background: #110e20; color: #f5f0ff; }
+  .sequence-slide-row small { margin-left: 8px; color: #caa9ff; font-size: 16px; }
+  .sequence-slide-row::before { content: ''; position: absolute; z-index: -1; top: 35px; left: 0; right: 0; border-top: 3px solid #b783f4; }
+  .sequence-slide-row::after { content: '▶'; position: absolute; top: 22px; right: -7px; color: #caa9ff; font-size: 24px; }
+  .sequence-slide-row.reverse::after { content: '◀'; left: -7px; right: auto; }
+  .sequence-slide-row.internal::before { left: 78%; border-radius: 12px; border: 3px solid #b783f4; border-left: 0; height: 15px; top: 30px; }
+  .sequence-slide-row.internal::after { content: '◀'; right: 23%; top: 34px; }
+  .sequence-slide-row.refund b { color: #e7bcff; }
+  .sequence-note { margin-top: 8px; padding: 11px 15px; border-left: 3px solid #b783f4; background: #211a36; color: #d9cde9; font-size: 17px; }
   .equation { display: grid; grid-template-columns: 1fr 50px 1fr 50px 1fr; align-items: center; margin: 8px 0 30px; text-align: center; }
   .equation b { display: block; font-size: 94px; line-height: 1.1; }
   .equation span { font-size: 18px; color: #cec4df; }
@@ -109,11 +125,12 @@ style: |
 
 <div class="eyebrow">01 / Solana auth-capture · Escrow prototype</div>
 
-## A defined lifecycle.<br>A Solana escrow implementation.
+## The specification defaults to escrow.<br>We implemented that flow on Solana.
 
-<div class="grid two"><div class="card"><h3>What is specified</h3><p>Hold, capture, cancel, refund,<br>and client recovery after a deadline. [1]</p></div><div class="card"><h3>Official implementation status</h3><p>Auth-capture is implemented for EVM, but has no published SVM implementation. [2, 3]</p></div></div>
-<div class="band">Implemented in Anchor: hold, capture, release, refund, and payer reclaim.</div>
-<div class="sources">[1] <a href="https://github.com/x402-foundation/x402/blob/faa1c694c66a3732aaabbce93bdae140e521a67d/specs/schemes/auth-capture/scheme_auth_capture.md">Generic specification</a> · [2] <a href="https://github.com/x402-foundation/x402/tree/faa1c694c66a3732aaabbce93bdae140e521a67d/typescript/packages/mechanisms/evm/src/auth-capture">EVM SDK source</a> · [3] <a href="https://github.com/x402-foundation/x402/tree/faa1c694c66a3732aaabbce93bdae140e521a67d/typescript/packages/mechanisms/svm/src">SVM SDK source</a><br>x402 snapshot faa1c69 (2026-10-15). Independent experimental binding, not official SVM compatibility.</div>
+<div class="grid two"><div class="card"><h3>Escrow · default</h3><p><code>authorize</code> holds the ceiling. After the resource runs: <code>capture</code> or <code>void</code>. Later: <code>refund</code>; payer <code>reclaim</code> after the capture deadline. [1]</p></div><div class="card"><h3>Authorization · alternative</h3><p>Verify before the resource; <code>charge</code> afterwards. A later <code>refund</code> is possible. No hold, capture, void, or reclaim. [1]</p></div></div>
+<div class="band">Our Anchor binding implements the default escrow flow: hold, partial capture, release, refund, and payer reclaim.</div>
+<p class="small muted" style="margin-top:14px">Official auth-capture SDK support exists for EVM; none was published for SVM in the reviewed snapshot. [2, 3]</p>
+<div class="sources">[1] <a href="https://github.com/x402-foundation/x402/blob/main/specs/schemes/auth-capture/scheme_auth_capture.md">Generic specification, payment flows</a> · [2] <a href="https://github.com/x402-foundation/x402/tree/faa1c694c66a3732aaabbce93bdae140e521a67d/typescript/packages/mechanisms/evm/src/auth-capture">EVM SDK source</a> · [3] <a href="https://github.com/x402-foundation/x402/tree/faa1c694c66a3732aaabbce93bdae140e521a67d/typescript/packages/mechanisms/svm/src">SVM SDK source</a><br>SDK snapshot faa1c69 (2026-10-15). Independent experimental binding; no official SVM compatibility claim.</div>
 
 ---
 
@@ -130,13 +147,13 @@ style: |
 
 ---
 
-<div class="eyebrow">03 / Solana auth-capture · Implemented request path</div>
+<div class="eyebrow">03 / Default escrow flow · settle → resource → settle</div>
 
-## Hold first. Finalize after the task.
+## Follow the client–provider exchange.
 
-<div class="arch-row"><div class="node"><b>Authorize</b><p>Client funds the hold<br>Wait for confirmation</p></div><div class="arrow">→</div><div class="node"><b>Execute task</b><p>Gateway records<br>success or failure</p></div><div class="arrow">→</div><div class="node"><b>Finalize</b><p>Capture actual + release rest<br>Or void remaining hold</p></div></div>
-<div class="grid two" style="margin-top:25px"><div class="card"><h3>Service disappears?</h3><p>Client directly reclaims the remaining hold after the capture deadline.</p></div><div class="card"><h3>Later refund agreed?</h3><p>Merchant returns captured funds from its own token account.</p></div></div>
-<div class="sources">Escrow ordering and lifecycle: <a href="https://github.com/x402-foundation/x402/blob/cb0ec5bca0a5b21860a36bb60f34433c2e8e0d71/specs/schemes/auth-capture/scheme_auth_capture.md">generic specification</a> · <a href="ARCHITECTURE.md#escrow-request-and-lifecycle-flow">Our sequence diagram</a><br>Capture cannot prove task quality. Reclaim does not reverse an already captured payment.</div>
+<div class="sequence-slide"><div class="sequence-actors"><span>AI AGENT / CLIENT</span><span>API PROVIDER / MERCHANT</span></div><div class="sequence-slide-row"><b>01 · GET paid report</b></div><div class="sequence-slide-row reverse"><b>02 · 402 Payment Required</b><small>Hold ceiling: 1000</small></div><div class="sequence-slide-row"><b>03 · Signed retry</b><small>Payer authorizes the hold</small></div><div class="sequence-slide-row internal"><b>04 · Capture 300, release 700</b></div><div class="sequence-slide-row reverse"><b>05 · 200 + PAYMENT-RESPONSE</b></div><div class="sequence-slide-row reverse refund"><b>06 · Later merchant refund: 100</b></div></div>
+<div class="sequence-note">The model selects the tool and later judges the report. The app handles signatures and budget; the facilitator relays the in-request transactions. On failure, the merchant voids the hold; after abandonment, the payer may reclaim the remainder.</div>
+<div class="sources">Browser sequence: <a href="demo.md#browser-presentation">recorded demo</a> · Escrow ordering: <a href="https://github.com/x402-foundation/x402/blob/cb0ec5bca0a5b21860a36bb60f34433c2e8e0d71/specs/schemes/auth-capture/scheme_auth_capture.md">generic specification</a> · <a href="ARCHITECTURE.md#escrow-request-and-lifecycle-flow">full protocol diagram</a><br>Capture cannot prove task quality. Reclaim does not reverse an already captured payment.</div>
 
 ---
 
@@ -167,10 +184,10 @@ style: |
 
 <div class="eyebrow">06 / Solana auth-capture · Scope</div>
 
-## Start with escrow.<br>Track the remaining coverage.
+## Escrow implemented.<br>Devnet payment to verify.
 
 <div class="roadmap"><div class="card"><span class="tag">IMPLEMENTED · ESCROW</span><h3>Working prototype</h3><p>Anchor program, HTTP adapter, and browser-driven AI agent payment.</p></div><div class="steps"><div class="step"><span>✓</span> Hold, capture, void, reclaim</div><div class="step"><span>✓</span> Merchant-funded refund</div><div class="step"><span>✓</span> Program deployed on Devnet</div><div class="step"><span>→</span> Verify a Devnet payment</div></div></div>
-<div class="band">Experimental escrow binding; no official SVM interoperability claim.</div>
+<div class="band">Experimental escrow binding; the alternative authorization / direct-charge flow is outside this implementation.</div>
 <div class="sources"><a href="../../../programs/anchoring-payment-channels/src/auth_capture.rs">Anchor program</a> · <a href="ARCHITECTURE.md#binding-and-implementation-milestones">Roadmap</a> · <a href="https://github.com/x402-foundation/x402/blob/main/specs/schemes/auth-capture/scheme_auth_capture.md">Scheme flows</a><br>The separate <a href="../closing-settlement/ARCHITECTURE.md">Issue #90 design</a> does not define this binding.</div>
 
 ---
@@ -186,7 +203,7 @@ style: |
 ## Who calls whom in a paid API request?
 
 <div class="arch-row"><div class="node"><b>Agent / client</b><p>Checks quote and budget<br>Signs the payment</p></div><div class="arrow">⇄</div><div class="node"><b>Gateway / API</b><p>Returns 402 and report<br>Calls the facilitator</p></div><div class="arrow">⇄</div><div class="node"><b>Facilitator</b><p>Checks authorization<br>Submits to Solana</p></div></div>
-<div class="demo-steps"><div>1 · Client ↔ gateway: GET → auth-capture 402 → signed hold retry.</div><div>2 · Gateway ↔ facilitator: confirm payer hold before the handler.</div><div>3 · Merchant ↔ facilitator: capture 300 and release 700 atomically.</div><div>4 · Gateway → client: paid JSON + PAYMENT-RESPONSE and payment ID.</div></div>
+<div class="demo-steps"><div>1 · Client → gateway: GET; gateway → client: auth-capture 402.</div><div>2 · Client → gateway: signed retry; facilitator confirms the hold before the handler.</div><div>3 · Merchant → facilitator: capture 300 and release 700 atomically.</div><div>4 · Gateway → client: paid JSON + PAYMENT-RESPONSE and payment ID.</div><div>5 · Later merchant refund: 100 moves from merchant wallet to client.</div></div>
 <div class="sources">Demo: <a href="demo.md">runbook</a> · <a href="../../../examples/gateway/src/app.ts">gateway middleware</a> · <a href="../../../examples/client/src/payment-tools.ts">agent payment tools</a><br>The recorded local validator demo includes a later merchant-initiated refund; HTTP tests separately use simulated RPC.</div>
 
 ---
